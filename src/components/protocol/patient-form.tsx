@@ -35,12 +35,15 @@ export function PatientForm({ onSubmit, isLoading }: PatientFormProps) {
       'image/*': ['.png', '.jpg', '.jpeg', '.gif', '.webp']
     },
     maxSize: 5 * 1024 * 1024, // 5MB
-    onDrop: (acceptedFiles) => {
+    onDrop: async (acceptedFiles) => {
+      // For demo purposes, we'll use local URLs
+      // In production, this would upload to S3
       const newImages = acceptedFiles.map(file => ({
         id: Math.random().toString(36).substr(2, 9),
         url: URL.createObjectURL(file),
         type: 'other' as const,
-        file
+        file,
+        description: '' // User can add description
       }))
       setUploadedImages(prev => [...prev, ...newImages])
     }

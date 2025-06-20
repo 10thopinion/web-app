@@ -47,28 +47,28 @@ export const AGENT_CONFIGS = {
       id: 'agent-1',
       name: 'First Opinion',
       specialization: 'Pattern Recognition',
-      model: 'anthropic.claude-opus-4-20250515',
+      model: 'anthropic.claude-opus-4-20250514-v1:0',
       approach: 'Fast intuitive diagnosis based on common presentations'
     },
     {
       id: 'agent-2', 
       name: 'Second Opinion',
       specialization: 'Differential Diagnosis',
-      model: 'anthropic.claude-opus-4-20250515',
+      model: 'anthropic.claude-opus-4-20250514-v1:0',
       approach: 'Generate comprehensive list of possibilities'
     },
     {
       id: 'agent-3',
       name: 'Third Opinion',
       specialization: 'Rare Disease Specialist', 
-      model: 'anthropic.claude-sonnet-4-20250515',
+      model: 'anthropic.claude-sonnet-4-20250514-v1:0',
       approach: 'Check for uncommon conditions others might miss'
     },
     {
       id: 'agent-4',
       name: 'Fourth Opinion',
       specialization: 'Holistic Assessment',
-      model: 'anthropic.claude-opus-4-20250515',
+      model: 'anthropic.claude-opus-4-20250514-v1:0',
       approach: 'Consider patient history, medications, lifestyle'
     }
   ],
@@ -77,7 +77,7 @@ export const AGENT_CONFIGS = {
       id: 'agent-5',
       name: 'Fifth Opinion',
       specialization: 'Consensus Builder',
-      model: 'anthropic.claude-opus-4-20250515',
+      model: 'anthropic.claude-opus-4-20250514-v1:0',
       approach: 'Find common threads among blind opinions',
       canSee: [1, 2, 3, 4]
     },
@@ -85,7 +85,7 @@ export const AGENT_CONFIGS = {
       id: 'agent-6',
       name: 'Sixth Opinion',
       specialization: "Devil's Advocate",
-      model: 'anthropic.claude-sonnet-4-20250515',
+      model: 'anthropic.claude-sonnet-4-20250514-v1:0',
       approach: 'Actively look for what others missed',
       canSee: [1, 2, 3, 4, 5]
     },
@@ -93,7 +93,7 @@ export const AGENT_CONFIGS = {
       id: 'agent-7',
       name: 'Seventh Opinion',
       specialization: 'Evidence Validator',
-      model: 'anthropic.claude-opus-4-20250515',
+      model: 'anthropic.claude-opus-4-20250514-v1:0',
       approach: 'Check diagnoses against latest research',
       canSee: [1, 2, 3, 4, 5, 6]
     }
@@ -120,7 +120,7 @@ export const AGENT_CONFIGS = {
     id: 'agent-10',
     name: 'Tenth Opinion',
     specialization: 'Final Authority',
-    model: 'anthropic.claude-opus-4-20250515',
+    model: 'anthropic.claude-opus-4-20250514-v1:0',
     approach: 'Weighted synthesis with confidence scoring',
     weights: {
       blindConsensus: 0.3,
