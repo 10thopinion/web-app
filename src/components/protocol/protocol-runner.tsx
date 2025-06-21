@@ -19,7 +19,7 @@ interface ProtocolRunnerProps {
 export function ProtocolRunner({ patientData, onReset }: ProtocolRunnerProps) {
   const { protocol, agentStatuses, error, isComplete } = useProtocolAnalysis({
     patientData,
-    useMockData: true // Set to false when ready to use real AWS Bedrock
+    useMockData: false // Using real AWS Bedrock integration
   })
 
   const getUrgencyColor = (level: string) => {

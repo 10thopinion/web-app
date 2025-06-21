@@ -1,6 +1,6 @@
 import { BedrockRuntimeClient, InvokeModelCommand } from "@aws-sdk/client-bedrock-runtime"
 import { PatientData, AgentOpinion } from "@/types/medical"
-import { AGENT_CONFIGS } from "@/types/protocol"
+import { getAgentConfigs, ModelTier } from "@/types/protocol"
 
 // Initialize Bedrock client
 const bedrockClient = new BedrockRuntimeClient({
@@ -10,6 +10,8 @@ const bedrockClient = new BedrockRuntimeClient({
     secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY!,
   },
 })
+
+// Get model tier from environment - will be loaded dynamically
 
 // Enhanced medical system prompts for different agent types
 const SYSTEM_PROMPTS = {
@@ -29,7 +31,26 @@ Approach:
 4. Apply the principle that "common things are common"
 5. Focus on the most likely diagnoses based on pattern matching
 
+IMPORTANT: Express your diagnostic reasoning process step-by-step. Show HOW you think, not just WHAT you conclude.
+
 Do not reference other agents' opinions. Provide clear diagnostic reasoning based on symptom patterns.`,
+    
+    patternWithSelectiveDisclosure: `You are the First Opinion - a medical AI specializing in pattern recognition with selective medical context.
+
+Your expertise:
+- Identifying classic symptom constellations
+- Recognizing common disease patterns
+- Applying Occam's razor (simplest explanation)
+- Using epidemiological data for likelihood assessment
+
+IMPORTANT INSTRUCTIONS:
+1. You will receive selective medical context that may be incomplete or partially disclosed
+2. Document your thinking process explicitly - show how missing information affects your reasoning
+3. Note what additional information would be helpful and why
+4. Explain how the partial context influences your diagnostic confidence
+5. Be transparent about assumptions you're making to fill information gaps
+
+Your goal is to demonstrate your diagnostic reasoning process transparently, including how you handle uncertainty and incomplete information.`,
     
     differential: `You are the Second Opinion - a medical AI specializing in comprehensive differential diagnosis.
 
@@ -104,6 +125,37 @@ Approach:
 6. Highlight the diagnostic reasoning threads that multiple agents followed
 
 Build on the collective wisdom of the blind diagnoses.`,
+    
+    consensusWithMetaScrutiny: `You are the Fifth Opinion - a medical AI with dual expertise in consensus building AND meta-cognitive analysis.
+
+Your dual role:
+1. CONSENSUS BUILDING:
+   - Synthesize blind agents' findings
+   - Identify areas of agreement
+   - Create diagnostic hierarchy
+   
+2. META-SCRUTINY OF FIRST OPINION:
+   - Analyze HOW the First Opinion thinks, not just WHAT they concluded
+   - Identify cognitive patterns, biases, and reasoning strategies
+   - Assess how they handled incomplete information
+   - Evaluate their confidence calibration
+   - Detect any systematic thinking errors or brilliant insights
+
+META-ANALYSIS APPROACH:
+1. Deconstruct First Opinion's reasoning chain step-by-step
+2. Identify which heuristics or mental models they used
+3. Assess whether their confidence matches their reasoning quality
+4. Note any cognitive biases (anchoring, availability, confirmation)
+5. Evaluate how they prioritized different pieces of information
+6. Consider what their reasoning reveals about their "thinking style"
+
+IMPORTANT: Your meta-analysis should help other agents understand:
+- Why First Opinion reached their conclusions
+- What thinking patterns led to their diagnosis
+- Whether their reasoning process was sound, even if conclusions differ
+- How their approach might complement or conflict with other agents
+
+Provide both consensus analysis AND detailed meta-cognitive assessment.`,
     
     advocate: `You are the Sixth Opinion - a medical AI acting as devil's advocate and critical reviewer.
 
@@ -214,6 +266,7 @@ export async function invokeAgent(
   patientData: PatientData,
   previousOpinions?: AgentOpinion[]
 ): Promise<AgentOpinion> {
+  console.log(`[Bedrock] Invoking ${agentConfig.name} (${agentConfig.id}) with model: ${agentConfig.model}`)
   try {
     // Construct the prompt based on agent type
     let systemPrompt = ""
@@ -228,16 +281,49 @@ export async function invokeAgent(
     if (patientData.allergies?.length) userPrompt += `Allergies: ${patientData.allergies.join(", ")}\n`
 
     // Set system prompt based on agent type and specialization
-    if (agentConfig.id === 'agent-1') systemPrompt = SYSTEM_PROMPTS.blind.pattern
+    if (agentConfig.id === 'agent-1') {
+      // Use selective disclosure prompt for First Opinion if enabled
+      systemPrompt = agentConfig.selectiveDisclosure 
+        ? SYSTEM_PROMPTS.blind.patternWithSelectiveDisclosure 
+        : SYSTEM_PROMPTS.blind.pattern
+    }
     else if (agentConfig.id === 'agent-2') systemPrompt = SYSTEM_PROMPTS.blind.differential
     else if (agentConfig.id === 'agent-3') systemPrompt = SYSTEM_PROMPTS.blind.rare
     else if (agentConfig.id === 'agent-4') systemPrompt = SYSTEM_PROMPTS.blind.holistic
-    else if (agentConfig.id === 'agent-5') systemPrompt = SYSTEM_PROMPTS.informed.consensus
+    else if (agentConfig.id === 'agent-5') {
+      // Use meta-scrutinizing prompt for Fifth Opinion if configured
+      systemPrompt = agentConfig.metaScrutinizes 
+        ? SYSTEM_PROMPTS.informed.consensusWithMetaScrutiny
+        : SYSTEM_PROMPTS.informed.consensus
+    }
     else if (agentConfig.id === 'agent-6') systemPrompt = SYSTEM_PROMPTS.informed.advocate
     else if (agentConfig.id === 'agent-7') systemPrompt = SYSTEM_PROMPTS.informed.evidence
     else if (agentConfig.id === 'agent-8') systemPrompt = SYSTEM_PROMPTS.scrutinizer.hallucination
     else if (agentConfig.id === 'agent-9') systemPrompt = SYSTEM_PROMPTS.scrutinizer.bias
     else if (agentConfig.id === 'agent-10') systemPrompt = SYSTEM_PROMPTS.final
+    
+    // Implement selective disclosure for agent-1
+    let modifiedPatientData = { ...patientData }
+    if (agentConfig.id === 'agent-1' && agentConfig.selectiveDisclosure) {
+      // Randomly withhold some information to test reasoning under uncertainty
+      const disclosureChoices = Math.random()
+      
+      if (disclosureChoices < 0.33) {
+        // Withhold medical history
+        delete modifiedPatientData.medicalHistory
+        userPrompt = userPrompt.replace(/Medical History:.*\n/, 'Medical History: [Withheld for this analysis]\n')
+      } else if (disclosureChoices < 0.66) {
+        // Withhold medications
+        delete modifiedPatientData.medications
+        userPrompt = userPrompt.replace(/Current Medications:.*\n/, 'Current Medications: [Withheld for this analysis]\n')
+      } else {
+        // Withhold age and sex
+        delete modifiedPatientData.age
+        delete modifiedPatientData.biologicalSex
+        userPrompt = userPrompt.replace(/Age:.*\n/, 'Age: [Withheld for this analysis]\n')
+        userPrompt = userPrompt.replace(/Biological Sex:.*\n/, 'Biological Sex: [Withheld for this analysis]\n')
+      }
+    }
 
     // Add previous opinions for informed agents
     if (previousOpinions && previousOpinions.length > 0 && ['agent-5', 'agent-6', 'agent-7', 'agent-8', 'agent-9', 'agent-10'].includes(agentConfig.id)) {
@@ -293,10 +379,23 @@ export async function invokeAgent(
 
     const response = await bedrockClient.send(command)
     const responseBody = JSON.parse(new TextDecoder().decode(response.body))
+    console.log(`[Bedrock] ${agentConfig.name} response received, usage:`, responseBody.usage)
     
     // Parse the response
     const content = responseBody.content[0].text
-    const analysisResult = JSON.parse(content)
+    
+    // Extract JSON from potential markdown code blocks
+    let jsonContent = content
+    if (content.includes('```json')) {
+      jsonContent = content.match(/```json\s*([\s\S]*?)\s*```/)?.[1] || content
+    } else if (content.includes('```')) {
+      jsonContent = content.match(/```\s*([\s\S]*?)\s*```/)?.[1] || content
+    }
+    
+    // Clean up any extra whitespace
+    jsonContent = jsonContent.trim()
+    
+    const analysisResult = JSON.parse(jsonContent)
 
     return {
       agentId: agentConfig.id,
@@ -339,12 +438,20 @@ function getAgentType(agentId: string): AgentOpinion["agentType"] {
 export async function runTenthOpinionProtocol(patientData: PatientData) {
   const results: Record<string, AgentOpinion> = {}
   
+  // Get model tier and configs dynamically
+  const modelTier = (process.env.MODEL_SETUP as ModelTier) || 'dev';
+  const AGENT_CONFIGS = getAgentConfigs(modelTier);
+  
+  console.log("[Bedrock] Starting protocol with model tier:", modelTier)
+  
   try {
     // Phase 1: Blind agents (parallel)
+    console.log("[Bedrock] Phase 1: Running", AGENT_CONFIGS.blind.length, "blind agents in parallel")
     const blindPromises = AGENT_CONFIGS.blind.map(agent => 
       invokeAgent(agent, patientData)
     )
     const blindResults = await Promise.all(blindPromises)
+    console.log("[Bedrock] Phase 1 complete:", blindResults.length, "blind agents finished")
     blindResults.forEach(result => {
       results[result.agentId] = result
     })

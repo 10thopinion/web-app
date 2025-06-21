@@ -16,7 +16,11 @@ const client = new DynamoDBClient({
   },
 })
 
-const docClient = DynamoDBDocumentClient.from(client)
+const docClient = DynamoDBDocumentClient.from(client, {
+  marshallOptions: {
+    removeUndefinedValues: true
+  }
+})
 const TABLE_NAME = process.env.DYNAMODB_TABLE_NAME || "TenthOpinionSessions"
 
 /**

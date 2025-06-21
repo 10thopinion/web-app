@@ -8,8 +8,10 @@ import { PatientData } from "@/types/medical"
 import { TenthOpinionProtocol, ProtocolSummary } from "@/types/protocol"
 
 export async function POST(request: NextRequest) {
+  console.log("[API] Analysis request received at", new Date().toISOString())
   try {
     const patientData: PatientData = await request.json()
+    console.log("[API] Patient data:", JSON.stringify(patientData).substring(0, 200))
     
     // Initialize protocol
     const protocol: TenthOpinionProtocol = {
@@ -26,7 +28,9 @@ export async function POST(request: NextRequest) {
 
     // Save initial session
     try {
-      await saveSession(protocol)
+      console.log("[API] Attempting to save session to DynamoDB...")
+      // await saveSession(protocol) // TEMPORARILY DISABLED FOR DEBUGGING
+      console.log("[API] DynamoDB save skipped (temporarily disabled)")
     } catch (dbError) {
       console.error("Failed to save session:", dbError)
       // Continue without saving - don't fail the analysis
@@ -36,7 +40,9 @@ export async function POST(request: NextRequest) {
     protocol.status = "collecting"
     
     // Run the protocol
+    console.log("[API] Starting Tenth Opinion Protocol...")
     const results = await runTenthOpinionProtocol(patientData)
+    console.log("[API] Protocol completed, got", Object.keys(results).length, "agent results")
     
     // Process results
     const blindAgents = ['agent-1', 'agent-2', 'agent-3', 'agent-4']
@@ -79,6 +85,8 @@ export async function POST(request: NextRequest) {
 
     // Save final results
     try {
+      console.log("[API] Skipping DynamoDB update and learning metrics (temporarily disabled)")
+      /*
       await updateSessionStatus(protocol.sessionId, "complete", {
         endTime: protocol.endTime,
         summary: protocol.summary,
@@ -93,6 +101,7 @@ export async function POST(request: NextRequest) {
         protocol.startTime,
         protocol.endTime
       )
+      */
     } catch (dbError) {
       console.error("Failed to update session:", dbError)
     }
@@ -107,7 +116,8 @@ export async function POST(request: NextRequest) {
     })
 
   } catch (error) {
-    console.error("Analysis error:", error)
+    console.error("[API] Analysis error:", error)
+    console.error("[API] Error stack:", error instanceof Error ? error.stack : "No stack trace")
     return NextResponse.json(
       {
         success: false,
