@@ -9,9 +9,10 @@ interface MascotProps {
   size?: "sm" | "md" | "lg" | "xl"
   className?: string
   animate?: boolean
+  sparkle?: boolean
 }
 
-export function Mascot({ variant = "main", size = "md", className, animate = true }: MascotProps) {
+export function Mascot({ variant = "main", size = "md", className, animate = false }: MascotProps) {
   const sizes = {
     sm: "w-8 h-8",
     md: "w-12 h-12", 
@@ -96,7 +97,9 @@ export function Mascot({ variant = "main", size = "md", className, animate = tru
 }
 
 // Sparkle effect component
-export function MascotSparkle({ delay = 0 }: { delay?: number }) {
+export function MascotSparkle({ delay = 0, visible = false }: { delay?: number; visible?: boolean }) {
+  if (!visible) return null;
+  
   return (
     <motion.div
       className="absolute inset-0 pointer-events-none"

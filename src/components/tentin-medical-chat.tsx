@@ -11,6 +11,7 @@ import { motion, AnimatePresence } from "framer-motion"
 import { useChat } from "@/contexts/chat-context"
 import { AgentOpinion } from "@/types/medical"
 import { ProtocolSummary } from "@/types/protocol"
+import ReactMarkdown from "react-markdown"
 import "./tentin-chat.css"
 
 interface ChatMessage {
@@ -164,7 +165,27 @@ If you are experiencing a medical emergency, please contact your local emergency
                         )}
                       </div>
                       <div className={cn("chat-bubble", message.role)}>
-                        <p>{message.content}</p>
+                        <ReactMarkdown 
+                          className="text-sm whitespace-pre-wrap prose prose-sm dark:prose-invert max-w-none"
+                          components={{
+                            p: ({ children }) => <p className="mb-2">{children}</p>,
+                            strong: ({ children }) => <strong className="font-semibold">{children}</strong>,
+                            ul: ({ children }) => <ul className="list-disc pl-4 mb-2">{children}</ul>,
+                            li: ({ children }) => <li className="mb-1">{children}</li>,
+                            a: ({ href, children }) => (
+                              <a 
+                                href={href} 
+                                target="_blank" 
+                                rel="noopener noreferrer" 
+                                className="text-blue-500 hover:underline"
+                              >
+                                {children}
+                              </a>
+                            )
+                          }}
+                        >
+                          {message.content}
+                        </ReactMarkdown>
                         <p className="chat-timestamp">
                           {message.timestamp.toLocaleTimeString()}
                         </p>

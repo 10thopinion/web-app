@@ -78,15 +78,14 @@ export function AgentCard({ agent, status, delay = 0 }: AgentCardProps) {
                 <Mascot 
                   variant={agentVariant} 
                   size="md" 
-                  animate={status === "thinking"}
+                  animate={false}
                   className={cn(
                     "transition-all",
-                    status === "thinking" && "tenth-bounce",
                     status === "complete" && "group-hover:scale-110"
                   )}
                 />
 
-                {status === "thinking" && <MascotSparkle delay={0} />}
+                {/* {status === "thinking" && <MascotSparkle delay={0} visible={false} />} */}
               </div>
               
               <div className="space-y-1">

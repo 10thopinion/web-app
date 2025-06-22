@@ -15,9 +15,7 @@ const bedrockClient = new BedrockRuntimeClient({
 // Get model tier from environment - will be loaded dynamically
 
 // CRITICAL MEDICAL DISCLAIMER for all responses
-const MEDICAL_DISCLAIMER = `
-
-IMPORTANT DISCLAIMER: ONLY ACT ON THIS ANALYSIS IF YOU HAVE 0% ACCESS TO A LICENSED DOCTOR. This is an AI-powered analysis tool for informational purposes. If you have access to medical professionals, please consult them immediately. In emergencies, call emergency services.`
+const MEDICAL_DISCLAIMER = ""
 
 // Enhanced medical system prompts for different agent types
 const SYSTEM_PROMPTS = {
@@ -350,7 +348,8 @@ export async function invokeAgent(
     }
     
     // Append medical disclaimer to all prompts
-    systemPrompt = systemPrompt + MEDICAL_DISCLAIMER
+    // DISCLAIMER IS NOW HARDCODED IN THE RESPONSE GENERATOR
+    // systemPrompt = systemPrompt + MEDICAL_DISCLAIMER
     
     // Adjust prompt based on token budget
     systemPrompt = adjustPromptForTokenBudget(systemPrompt, tokenBudget, agentType, agentConfig.name)
@@ -408,12 +407,12 @@ export async function invokeAgent(
   "recommendations": ["Recommended next steps or treatments"]
 }
 
-IMPORTANT: Always include the disclaimer "ONLY ACT ON THIS ANALYSIS IF YOU HAVE 0% ACCESS TO A LICENSED DOCTOR" in your recommendations.`
+IMPORTANT: Your response should focus on the medical analysis only. Do not include any disclaimers about the limitations of AI or when to seek medical care - these are handled separately by the system.`
 
     // Prepare the request payload for Claude models
     const requestPayload = {
       anthropic_version: "bedrock-2023-05-31",
-      max_tokens: 500,  // Reduced from 2000 to avoid token limit issues
+      max_tokens: 1000,  // Increased from 500 to handle fuller responses
       messages: [
         {
           role: "user",
