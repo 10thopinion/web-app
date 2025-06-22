@@ -14,6 +14,11 @@ const bedrockClient = new BedrockRuntimeClient({
 
 // Get model tier from environment - will be loaded dynamically
 
+// CRITICAL MEDICAL DISCLAIMER for all responses
+const MEDICAL_DISCLAIMER = `
+
+IMPORTANT DISCLAIMER: ONLY ACT ON THIS ANALYSIS IF YOU HAVE 0% ACCESS TO A LICENSED DOCTOR. This is an AI-powered analysis tool for informational purposes. If you have access to medical professionals, please consult them immediately. In emergencies, call emergency services.`
+
 // Enhanced medical system prompts for different agent types
 const SYSTEM_PROMPTS = {
   blind: {
@@ -306,16 +311,46 @@ export async function invokeAgent(
     
     // Get agent type for optimization
     let agentType = ''
-    if (agentConfig.id.includes('pattern')) agentType = 'pattern'
-    else if (agentConfig.id.includes('differential')) agentType = 'differential'
-    else if (agentConfig.id.includes('rare')) agentType = 'rare'
-    else if (agentConfig.id.includes('holistic')) agentType = 'holistic'
-    else if (agentConfig.id.includes('consensus')) agentType = 'consensus'
-    else if (agentConfig.id.includes('devil')) agentType = 'devil'
-    else if (agentConfig.id.includes('evidence')) agentType = 'evidence'
-    else if (agentConfig.id.includes('hallucination')) agentType = 'hallucination'
-    else if (agentConfig.id.includes('bias')) agentType = 'bias'
-    else if (agentConfig.id.includes('final')) agentType = 'final'
+    if (agentConfig.id.includes('1')) agentType = 'pattern'
+    else if (agentConfig.id.includes('2')) agentType = 'differential'
+    else if (agentConfig.id.includes('3')) agentType = 'rare'
+    else if (agentConfig.id.includes('4')) agentType = 'holistic'
+    else if (agentConfig.id.includes('5')) agentType = 'consensus'
+    else if (agentConfig.id.includes('6')) agentType = 'devil'
+    else if (agentConfig.id.includes('7')) agentType = 'evidence'
+    else if (agentConfig.id.includes('8')) agentType = 'hallucination'
+    else if (agentConfig.id.includes('9')) agentType = 'bias'
+    else if (agentConfig.id.includes('10')) agentType = 'final'
+    
+    // Select the appropriate system prompt based on agent configuration
+    if (agentConfig.id === 'agent-1' && agentConfig.selectiveDisclosure) {
+      systemPrompt = SYSTEM_PROMPTS.blind.patternWithSelectiveDisclosure
+    } else if (agentConfig.id === 'agent-1') {
+      systemPrompt = SYSTEM_PROMPTS.blind.pattern
+    } else if (agentConfig.id === 'agent-2') {
+      systemPrompt = SYSTEM_PROMPTS.blind.differential
+    } else if (agentConfig.id === 'agent-3') {
+      systemPrompt = SYSTEM_PROMPTS.blind.rare
+    } else if (agentConfig.id === 'agent-4') {
+      systemPrompt = SYSTEM_PROMPTS.blind.holistic
+    } else if (agentConfig.id === 'agent-5' && agentConfig.metaScrutinizes) {
+      systemPrompt = SYSTEM_PROMPTS.informed.consensusWithMetaScrutiny
+    } else if (agentConfig.id === 'agent-5') {
+      systemPrompt = SYSTEM_PROMPTS.informed.consensus
+    } else if (agentConfig.id === 'agent-6') {
+      systemPrompt = SYSTEM_PROMPTS.informed.advocate
+    } else if (agentConfig.id === 'agent-7') {
+      systemPrompt = SYSTEM_PROMPTS.informed.evidence
+    } else if (agentConfig.id === 'agent-8') {
+      systemPrompt = SYSTEM_PROMPTS.scrutinizer.hallucination
+    } else if (agentConfig.id === 'agent-9') {
+      systemPrompt = SYSTEM_PROMPTS.scrutinizer.bias
+    } else if (agentConfig.id === 'agent-10') {
+      systemPrompt = SYSTEM_PROMPTS.final
+    }
+    
+    // Append medical disclaimer to all prompts
+    systemPrompt = systemPrompt + MEDICAL_DISCLAIMER
     
     // Adjust prompt based on token budget
     systemPrompt = adjustPromptForTokenBudget(systemPrompt, tokenBudget, agentType, agentConfig.name)
@@ -371,7 +406,9 @@ export async function invokeAgent(
   "reasoning": "Detailed explanation of your diagnostic reasoning",
   "redFlags": ["Any concerning symptoms or urgent issues"],
   "recommendations": ["Recommended next steps or treatments"]
-}`
+}
+
+IMPORTANT: Always include the disclaimer "ONLY ACT ON THIS ANALYSIS IF YOU HAVE 0% ACCESS TO A LICENSED DOCTOR" in your recommendations.`
 
     // Prepare the request payload for Claude models
     const requestPayload = {

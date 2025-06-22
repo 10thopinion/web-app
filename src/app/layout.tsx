@@ -1,6 +1,8 @@
 import type { Metadata, Viewport } from "next";
 import { Inter, Lexend, Merriweather, JetBrains_Mono } from "next/font/google";
 import { ThemeProvider } from "@/components/theme-provider";
+import { ChatProvider } from "@/contexts/chat-context";
+import { TentinMedicalChat } from "@/components/tentin-medical-chat";
 import "./globals.css";
 
 const inter = Inter({
@@ -62,7 +64,10 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          {children}
+          <ChatProvider>
+            {children}
+            <TentinMedicalChat />
+          </ChatProvider>
         </ThemeProvider>
       </body>
     </html>

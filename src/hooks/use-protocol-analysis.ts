@@ -2,6 +2,7 @@ import { useState, useEffect } from "react"
 import { PatientData, AgentOpinion } from "@/types/medical"
 import { TenthOpinionProtocol } from "@/types/protocol"
 import { AGENT_CONFIGS } from "@/types/protocol"
+import { useChat } from "@/contexts/chat-context"
 
 interface UseProtocolAnalysisProps {
   patientData: PatientData
@@ -14,6 +15,8 @@ export function useProtocolAnalysis({
   onComplete,
   useMockData = true // Default to mock for demo
 }: UseProtocolAnalysisProps) {
+  const { setSessionId, setAgentResults, setSummary, setIsAnalysisComplete } = useChat()
+  
   const [protocol, setProtocol] = useState<TenthOpinionProtocol>({
     sessionId: Math.random().toString(36).substr(2, 9),
     patientData,
@@ -127,6 +130,8 @@ export function useProtocolAnalysis({
     const scrutinizers = AGENT_CONFIGS.scrutinizers.map(config => results[config.id]).filter(Boolean)
     const finalAuthority = results[AGENT_CONFIGS.final.id]
 
+    const summary = generateSummary(blindAgents, informedAgents, scrutinizers, finalAuthority)
+
     // Update protocol with results
     setProtocol(prev => ({
       ...prev,
@@ -136,7 +141,7 @@ export function useProtocolAnalysis({
         scrutinizers,
         finalAuthority
       },
-      summary: generateSummary(blindAgents, informedAgents, scrutinizers, finalAuthority),
+      summary,
       endTime: new Date(),
       status: "complete"
     }))
@@ -147,6 +152,12 @@ export function useProtocolAnalysis({
       completeStatuses[agentId] = "complete"
     })
     setAgentStatuses(prev => ({ ...prev, ...completeStatuses }))
+
+    // Update chat context
+    setSessionId(protocol.sessionId)
+    setAgentResults(results)
+    setSummary(summary)
+    setIsAnalysisComplete(true)
   }
 
   const runMockProtocol = async () => {
@@ -196,6 +207,20 @@ export function useProtocolAnalysis({
     
     // Generate summary
     const summary = generateSummary(blindResults, informedResults, scrutinizerResults, finalResult)
+    
+    // Create agent results map
+    const allAgentResults: Record<string, AgentOpinion> = {}
+    blindResults.forEach(agent => { allAgentResults[agent.agentId] = agent })
+    informedResults.forEach(agent => { allAgentResults[agent.agentId] = agent })
+    scrutinizerResults.forEach(agent => { allAgentResults[agent.agentId] = agent })
+    allAgentResults[finalResult.agentId] = finalResult
+    
+    // Update chat context
+    setSessionId(protocol.sessionId)
+    setAgentResults(allAgentResults)
+    setSummary(summary)
+    setIsAnalysisComplete(true)
+    
     const finalProtocol = {
       ...protocol,
       agents: {

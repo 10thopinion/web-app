@@ -12,6 +12,7 @@ import { AGENT_CONFIGS } from "@/types/protocol"
 import { motion } from "framer-motion"
 import { AlertCircle, CheckCircle2, Activity, FileText, Sparkles } from "lucide-react"
 import { useProtocolAnalysis } from "@/hooks/use-protocol-analysis"
+import { MedicalChatbot } from "./medical-chatbot"
 
 interface ProtocolRunnerProps {
   patientData: PatientData
@@ -82,10 +83,13 @@ export function ProtocolRunner({ patientData, onReset }: ProtocolRunnerProps) {
       )}
 
       <Tabs defaultValue="agents" className="space-y-4">
-        <TabsList className="grid w-full grid-cols-3">
+        <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="agents">Agent Analysis</TabsTrigger>
           <TabsTrigger value="summary" disabled={!protocol.summary}>
             Summary
+          </TabsTrigger>
+          <TabsTrigger value="chatbot" disabled={!protocol.summary}>
+            Ask Questions
           </TabsTrigger>
           <TabsTrigger value="data">Patient Data</TabsTrigger>
         </TabsList>
@@ -347,6 +351,21 @@ export function ProtocolRunner({ patientData, onReset }: ProtocolRunnerProps) {
               )}
             </CardContent>
           </Card>
+        </TabsContent>
+        
+        <TabsContent value="chatbot">
+          {protocol.summary && isComplete && (
+            <MedicalChatbot
+              sessionId={protocol.sessionId}
+              agentResults={{
+                ...protocol.agents.blindAgents.reduce((acc, agent) => ({ ...acc, [agent.agentId]: agent }), {}),
+                ...protocol.agents.informedAgents.reduce((acc, agent) => ({ ...acc, [agent.agentId]: agent }), {}),
+                ...protocol.agents.scrutinizers.reduce((acc, agent) => ({ ...acc, [agent.agentId]: agent }), {}),
+                ...(protocol.agents.finalAuthority ? { [protocol.agents.finalAuthority.agentId]: protocol.agents.finalAuthority } : {})
+              }}
+              summary={protocol.summary}
+            />
+          )}
         </TabsContent>
       </Tabs>
     </div>

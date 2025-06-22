@@ -1,6 +1,10 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 
+/* Component styles */
+@import "../components/header.css";
+@import "../components/tentin-chat.css";
+
 @variant dark (&:is(.dark *));
 
 /* Tailwind v4 CSS-first configuration */

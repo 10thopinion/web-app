@@ -3,14 +3,22 @@
 import React from "react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
-import { MoonIcon, SunIcon } from "lucide-react"
+import { MoonIcon, SunIcon, MessageCircle } from "lucide-react"
 import { useTheme } from "next-themes"
 import { motion } from "framer-motion"
 import { Mascot } from "@/components/mascot"
 import Image from "next/image"
+import { useChat } from "@/contexts/chat-context"
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip"
 
 export function Header() {
   const { theme, setTheme } = useTheme()
+  const { setIsOpen, isAnalysisComplete } = useChat()
 
   return (
     <header className="sticky top-0 z-50 w-full bg-background/95 backdrop-blur-xl supports-[backdrop-filter]:bg-background/85">
@@ -37,35 +45,49 @@ export function Header() {
         </motion.div>
         
         <div className="flex flex-1 items-center justify-end gap-6">
-          {/* Clean Trust indicators without icons */}
-          <motion.div 
-            className="hidden lg:flex items-center gap-4"
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3 }}
-          >
-            <motion.div 
-              className="text-sm font-medium text-muted-foreground"
-              whileHover={{ scale: 1.05 }}
-              transition={{ type: "spring", stiffness: 400 }}
-            >
-              <span></span>
-            </motion.div>
-            <motion.div 
-              className="text-sm font-medium text-muted-foreground"
-              whileHover={{ scale: 1.05 }}
-              transition={{ type: "spring", stiffness: 400 }}
-            >
-              <span>10 Opinions</span>
-            </motion.div>
-            <motion.div 
-              className="text-sm font-medium text-muted-foreground"
-              whileHover={{ scale: 1.05 }}
-              transition={{ type: "spring", stiffness: 400 }}
-            >
-              <span>Realtime Analysis</span>
-            </motion.div>
-          </motion.div>
+          {/* AI Medical Assistant Chat Button */}
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <motion.div
+                  className="chat-button-wrapper"
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                >
+                  <button
+                    onClick={() => {
+                      console.log('Talk to Tentin clicked')
+                      setIsOpen(true)
+                    }}
+                    className="chat-button"
+                    aria-label="Talk to Tentin - AI Medical Assistant"
+                  >
+                    <Image
+                      src="/tentin-mascot-32x32.png"
+                      alt="Tentin"
+                      width={24}
+                      height={24}
+                      className="object-contain"
+                    />
+                    <span className="chat-text">
+                      Talk to Tentin
+                    </span>
+                    <MessageCircle className="h-4 w-4 text-blue-500/60 ml-1" />
+                    {isAnalysisComplete && (
+                      <motion.div
+                        initial={{ scale: 0 }}
+                        animate={{ scale: 1 }}
+                        className="chat-notification"
+                      />
+                    )}
+                  </button>
+                </motion.div>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Chat with Tentin about your medical analysis</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
 
           {/* Theme toggle */}
           <motion.div

@@ -12,8 +12,8 @@ import { X, Upload, Stethoscope, Pill, Shield, Sparkles } from "lucide-react"
 import { PatientData, UploadedImage } from "@/types/medical"
 import { SystemSymptom } from "@/types/symptom-checklist"
 import { motion, AnimatePresence } from "framer-motion"
-import { Mascot } from "@/components/mascot"
 import { SymptomChecklist } from "./symptom-checklist"
+import Image from "next/image"
 
 interface PatientFormProps {
   onSubmit: (data: PatientData) => void
@@ -162,7 +162,13 @@ export function PatientForm({ onSubmit, isLoading }: PatientFormProps) {
               ease: "easeInOut"
             }}
           >
-            <Mascot size="lg" animate />
+            <Image
+              src="/tentin-mascot-lg.png"
+              alt="Tentin"
+              width={64}
+              height={64}
+              className="object-contain"
+            />
           </motion.div>
           <div className="flex items-center gap-4">
             <motion.div 
