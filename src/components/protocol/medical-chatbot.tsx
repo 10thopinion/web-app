@@ -114,7 +114,7 @@ You can explore all 10 agent opinions in the **Agent Opinions** tab or ask me an
   })
 
   return (
-    <Card className="h-[800px] max-w-6xl mx-auto flex flex-col">
+    <Card className="min-h-[600px] max-w-6xl mx-auto flex flex-col">
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
           <div>
@@ -138,7 +138,7 @@ You can explore all 10 agent opinions in the **Agent Opinions** tab or ask me an
         </div>
       </CardHeader>
       <CardContent className="flex-1 flex flex-col p-0">
-        <Tabs defaultValue="chat" className="flex-1 flex flex-col">
+        <Tabs defaultValue="chat" className="flex-1 flex flex-col min-h-0">
           <TabsList className="mx-4">
             <TabsTrigger value="chat" className="flex items-center gap-2">
               <MessageSquare className="h-4 w-4" />
@@ -150,7 +150,7 @@ You can explore all 10 agent opinions in the **Agent Opinions** tab or ask me an
             </TabsTrigger>
           </TabsList>
           
-          <TabsContent value="chat" className="flex-1 flex flex-col p-0 overflow-hidden">
+          <TabsContent value="chat" className="flex flex-col h-[600px]">
         <ScrollArea className="flex-1 p-4">
           <div className="space-y-4">
             {messages.map((message) => (
@@ -255,9 +255,8 @@ You can explore all 10 agent opinions in the **Agent Opinions** tab or ask me an
         </div>
           </TabsContent>
           
-          <TabsContent value="opinions" className="flex-1 flex flex-col p-4 overflow-hidden">
-            <ScrollArea className="flex-1">
-              <div className="space-y-4 pr-4">
+          <TabsContent value="opinions" className="p-4">
+              <div className="space-y-4">
                 <div className="mb-4">
                   <h3 className="text-lg font-semibold mb-2">All Agent Opinions</h3>
                   <p className="text-sm text-muted-foreground">
@@ -336,7 +335,6 @@ You can explore all 10 agent opinions in the **Agent Opinions** tab or ask me an
                   </div>
                 </div>
               </div>
-            </ScrollArea>
           </TabsContent>
         </Tabs>
       </CardContent>
