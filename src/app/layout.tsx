@@ -31,12 +31,12 @@ const jetbrainsMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Tenth Opinion Protocol - Medical Analysis Platform",
+  title: "10th Opinion Protocol - Medical Analysis Platform",
   description: "Get 10 expert medical opinions analyzing your symptoms from different perspectives",
   keywords: "medical opinions, diagnosis, healthcare, symptom analysis, medical perspectives",
   authors: [{ name: "Tenth Opinion Team" }],
   openGraph: {
-    title: "Tenth Opinion Protocol",
+    title: "10th Opinion Protocol",
     description: "10 opinions are better than one - Get comprehensive medical insights",
     type: "website",
   },

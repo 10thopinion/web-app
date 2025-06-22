@@ -15,6 +15,9 @@ This system implements a multi-agent consensus protocol where 10 AI agents with 
 - System prompt engineering defines agent behavior, not model selection
 - Includes fallback JSON parsing for handling malformed agent responses
 - Mobile-responsive web interface built with Next.js 15.3
+- Mobile-optimized version with camera integration for field use
+- Email delivery option via AWS SES for poor network conditions
+- Network-aware features detect 2G/3G/4G connections
 
 ## Architecture
 
@@ -87,6 +90,10 @@ DYNAMODB_ANALYTICS_TABLE_NAME=TenthOpinionSessions-Analytics
 
 # Model Configuration
 MODEL_SETUP=minimal  # Options: minimal, dev, prod
+
+# Email Configuration (AWS SES)
+AWS_SES_FROM_EMAIL=tenthopinion@gmail.com
+AWS_SES_REGION=us-east-1
 ```
 
 ### Running the Application
@@ -119,10 +126,14 @@ In AWS Console > Bedrock > Model access, enable:
 # Run setup script
 bash scripts/setup-aws.sh
 
+# Setup email service (AWS SES)
+bash scripts/setup-ses.sh
+
 # Or manually create:
 # S3 bucket with CORS and lifecycle rules
 # DynamoDB table with TTL enabled
 # CloudWatch log group
+# SES email verification and configuration
 ```
 
 ### 3. IAM Permissions
@@ -132,6 +143,7 @@ Ensure your AWS credentials have:
 - S3 read/write on your bucket
 - DynamoDB read/write on tables
 - CloudWatch logs write permissions
+- SES:SendEmail permission for email delivery
 
 ## Cost Estimates
 
@@ -198,6 +210,15 @@ Ensure your AWS credentials have:
 2. Real-time progress display shows each agent's status
 3. Results presented with primary diagnosis and confidence
 4. DDA chat activated for deeper exploration of results
+5. Email delivery option for results when network connectivity is limited
+
+### Mobile Application (/mobile)
+- Optimized interface for smartphones and tablets
+- Camera integration for capturing patient images or documents
+- Network detection displays current connection type (2G/3G/4G)
+- Email fallback automatically suggested for poor connectivity
+- Touch-optimized controls and larger interaction targets
+- Simplified navigation for field healthcare workers
 
 ## Performance Characteristics
 
@@ -206,6 +227,28 @@ Ensure your AWS credentials have:
 - Parallel phase completion: 5-8 seconds
 - Sequential phase completion: 15-20 seconds
 - JSON parsing success rate: 95%+ with fallback extraction
+
+## Features for Field Use
+
+### Network Awareness
+- Automatic detection of connection type using Network Information API
+- Visual indicators for 2G, 3G, 4G, and 5G networks
+- Network quality assessment (poor/moderate/good/excellent)
+- Automatic email fallback suggestion for poor connectivity
+
+### Email Delivery
+- AWS SES integration for reliable email delivery
+- HTML-formatted results with medical disclaimers
+- Plain text version for maximum compatibility
+- Automatic sending when email provided in patient form
+- Includes session ID for future reference
+
+### Mobile Optimizations
+- Touch-friendly interface with larger buttons
+- Simplified navigation for one-handed use
+- Camera integration for document capture
+- Responsive design adapts to screen size
+- Reduced data usage for slow connections
 
 ## Known Limitations
 

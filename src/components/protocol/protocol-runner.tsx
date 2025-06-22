@@ -13,6 +13,7 @@ import { motion } from "framer-motion"
 import { AlertCircle, CheckCircle2, Activity, FileText, Sparkles } from "lucide-react"
 import { useProtocolAnalysis } from "@/hooks/use-protocol-analysis"
 import { MedicalChatbot } from "./medical-chatbot"
+import { useEmailResults } from "@/hooks/use-email-results"
 
 interface ProtocolRunnerProps {
   patientData: PatientData
@@ -23,6 +24,14 @@ export function ProtocolRunner({ patientData, onReset }: ProtocolRunnerProps) {
   const { protocol, agentStatuses, error, isComplete } = useProtocolAnalysis({
     patientData,
     useMockData: false // Using real AWS Bedrock integration
+  })
+
+  // Send email if requested
+  useEmailResults({
+    isComplete,
+    summary: protocol.summary,
+    sessionId: protocol.sessionId,
+    patientData
   })
 
   const getUrgencyColor = (level: string) => {
