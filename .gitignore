@@ -42,3 +42,5 @@ next-env.d.ts
 
 # YoYo AI version control directory
 .yoyo/
+docs/
+.cursor/
