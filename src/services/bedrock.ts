@@ -265,6 +265,39 @@ Approach:
 Provide the definitive medical assessment that best serves the patient's needs.`,
 }
 
+// Add retry logic with exponential backoff
+async function invokeWithRetry(
+  command: InvokeModelCommand,
+  agentName: string,
+  maxRetries: number = 3
+): Promise<any> {
+  let lastError
+  
+  for (let attempt = 0; attempt < maxRetries; attempt++) {
+    try {
+      // Add delay between retries (exponential backoff)
+      if (attempt > 0) {
+        const delay = Math.min(1000 * Math.pow(2, attempt - 1), 5000)
+        console.log(`[Bedrock] Retry ${attempt} for ${agentName} after ${delay}ms delay`)
+        await new Promise(resolve => setTimeout(resolve, delay))
+      }
+      
+      const response = await bedrockClient.send(command)
+      return response
+    } catch (error: any) {
+      lastError = error
+      console.error(`[Bedrock] Attempt ${attempt + 1} failed for ${agentName}:`, error.name)
+      
+      // Don't retry on certain errors
+      if (error.name === 'ValidationException' || error.name === 'SerializationException') {
+        throw error
+      }
+    }
+  }
+  
+  throw lastError
+}
+
 export async function invokeAgent(
   agentConfig: any,
   patientData: PatientData,
@@ -431,7 +464,7 @@ IMPORTANT: Your response should focus on the medical analysis only. Do not inclu
       body: JSON.stringify(requestPayload),
     })
 
-    const response = await bedrockClient.send(command)
+    const response = await invokeWithRetry(command, agentConfig.name)
     const responseBody = JSON.parse(new TextDecoder().decode(response.body))
     console.log(`[Bedrock] ${agentConfig.name} response received, usage:`, responseBody.usage)
     
@@ -446,10 +479,39 @@ IMPORTANT: Your response should focus on the medical analysis only. Do not inclu
       jsonContent = content.match(/```\s*([\s\S]*?)\s*```/)?.[1] || content
     }
     
-    // Clean up any extra whitespace
+    // Clean up any extra whitespace and fix common JSON issues
     jsonContent = jsonContent.trim()
     
-    const analysisResult = JSON.parse(jsonContent)
+    // Fix common JSON formatting issues
+    // Remove any trailing commas before closing braces/brackets
+    jsonContent = jsonContent.replace(/,\s*([}\]])/g, '$1')
+    // Fix unescaped newlines in JSON strings
+    // This is more complex - we need to find newlines within quoted strings
+    jsonContent = jsonContent.replace(/"([^"]*)"/g, (match, content) => {
+      // Replace actual newlines with escaped newlines within strings
+      return '"' + content.replace(/\n/g, '\\n').replace(/\r/g, '\\r') + '"'
+    })
+    
+    let analysisResult
+    try {
+      analysisResult = JSON.parse(jsonContent)
+    } catch (parseError) {
+      console.error(`[Bedrock] JSON parse error for ${agentConfig.name}:`, parseError)
+      console.error(`[Bedrock] Raw content:`, content.substring(0, 500))
+      
+      // Fallback: try to extract key information using regex
+      const diagnosisMatch = content.match(/"diagnosis"\s*:\s*\[([^\]]+)\]/)
+      const confidenceMatch = content.match(/"confidence"\s*:\s*([0-9.]+)/)
+      const reasoningMatch = content.match(/"reasoning"\s*:\s*"([^"]+)"/)
+      
+      analysisResult = {
+        diagnosis: diagnosisMatch ? diagnosisMatch[1].split(',').map(d => d.trim().replace(/"/g, '')) : ["Unable to parse diagnosis"],
+        confidence: confidenceMatch ? parseFloat(confidenceMatch[1]) : 0.5,
+        reasoning: reasoningMatch ? reasoningMatch[1] : "Analysis completed but response parsing failed",
+        redFlags: [],
+        recommendations: []
+      }
+    }
 
     return {
       agentId: agentConfig.id,
@@ -528,6 +590,10 @@ export async function runTenthOpinionProtocol(patientData: PatientData) {
     })
 
     // Phase 2: Informed agents (sequential)
+    console.log("[Bedrock] Phase 2: Running", AGENT_CONFIGS.informed.length, "informed agents sequentially")
+    // Add a small delay between phases to avoid rate limiting
+    await new Promise(resolve => setTimeout(resolve, 1000))
+    
     for (const agent of AGENT_CONFIGS.informed) {
       const previousOpinions = Object.values(results)
       const result = await invokeAgent(agent, patientData, previousOpinions)
@@ -535,15 +601,22 @@ export async function runTenthOpinionProtocol(patientData: PatientData) {
     }
 
     // Phase 3: Scrutinizers (parallel)
+    console.log("[Bedrock] Phase 3: Running", AGENT_CONFIGS.scrutinizers.length, "scrutinizer agents in parallel")
+    await new Promise(resolve => setTimeout(resolve, 1000))
+    
     const scrutinizerPromises = AGENT_CONFIGS.scrutinizers.map(agent => 
       invokeAgent(agent, patientData, Object.values(results))
     )
     const scrutinizerResults = await Promise.all(scrutinizerPromises)
+    console.log("[Bedrock] Phase 3 complete:", scrutinizerResults.length, "scrutinizer agents finished")
     scrutinizerResults.forEach(result => {
       results[result.agentId] = result
     })
 
     // Phase 4: Final authority
+    console.log("[Bedrock] Phase 4: Running final authority agent")
+    await new Promise(resolve => setTimeout(resolve, 1000))
+    
     const finalResult = await invokeAgent(
       AGENT_CONFIGS.final, 
       patientData, 

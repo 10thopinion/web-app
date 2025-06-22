@@ -6,10 +6,13 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Badge } from "@/components/ui/badge"
-import { Send, AlertCircle, Bot, User } from "lucide-react"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Send, AlertCircle, Bot, User, Brain, MessageSquare } from "lucide-react"
 import { motion } from "framer-motion"
+import ReactMarkdown from "react-markdown"
 import { AgentOpinion } from "@/types/medical"
 import { ProtocolSummary } from "@/types/protocol"
+import { AgentOpinionCard } from "./agent-opinion-card"
 
 interface ChatMessage {
   id: string
@@ -25,21 +28,25 @@ interface MedicalChatbotProps {
 }
 
 export function MedicalChatbot({ sessionId, agentResults, summary }: MedicalChatbotProps) {
+  const [selectedAgentContext, setSelectedAgentContext] = useState<AgentOpinion | null>(null)
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
       id: '1',
       role: 'assistant',
-      content: `Based on our comprehensive analysis, the primary diagnosis is ${summary.primaryDiagnosis.condition} with ${Math.round(summary.primaryDiagnosis.confidence * 100)}% confidence.
+      content: `Welcome to **Tentin DDA** (Diagnosis Discussion Agent)! 🏥
 
-I'm here to answer any follow-up questions you may have about your symptoms or our analysis. I'm particularly good at:
-- Explaining medical terms in simple language
-- Clarifying what specific symptoms might mean
-- Discussing next steps and when to seek immediate care
-- Addressing concerns about the diagnosis
+Based on our 10-agent consensus protocol, the primary diagnosis is **${summary.primaryDiagnosis.condition}** with ${Math.round(summary.primaryDiagnosis.confidence * 100)}% confidence.
 
-What would you like to know more about?
+I'm here to help you understand:
+- 🧠 Each agent's reasoning and perspective
+- 📊 Why certain diagnoses were prioritized
+- 🔍 Specific medical terms in simple language
+- 🚨 What symptoms to watch for
+- 📋 Recommended next steps
 
-**IMPORTANT MEDICAL DISCLAIMER:** This AI-powered analysis is intended for informational purposes only and should not replace professional medical advice, diagnosis, or treatment. Always seek the advice of your physician or other qualified health provider with any questions you may have regarding a medical condition. If you are experiencing a medical emergency, please contact your local emergency services immediately. [Find emergency numbers worldwide →](https://en.wikipedia.org/wiki/List_of_emergency_telephone_numbers)`,
+You can explore all 10 agent opinions in the **Agent Opinions** tab or ask me any questions here. What would you like to know more about?
+
+**IMPORTANT:** This AI analysis is for informational purposes only. Always consult healthcare professionals for medical advice. For emergencies: [Find emergency numbers worldwide →](https://en.wikipedia.org/wiki/List_of_emergency_telephone_numbers)`,
       timestamp: new Date()
     }
   ])
@@ -62,7 +69,12 @@ What would you like to know more about?
 
     // Simulate AI response (in production, this would call an API)
     setTimeout(() => {
-      const response = generateContextualResponse(input, summary, agentResults)
+      const response = generateContextualResponse(
+        input, 
+        summary, 
+        agentResults, 
+        selectedAgentContext
+      )
       const assistantMessage: ChatMessage = {
         id: (Date.now() + 1).toString(),
         role: 'assistant',
@@ -71,17 +83,39 @@ What would you like to know more about?
       }
       setMessages(prev => [...prev, assistantMessage])
       setIsTyping(false)
+      // Clear agent context after using it
+      setSelectedAgentContext(null)
     }, 1500)
   }
 
+  // Handle asking about specific agent opinion
+  const handleAskAboutOpinion = (opinion: AgentOpinion) => {
+    setSelectedAgentContext(opinion)
+    const question = `I'd like to understand more about ${opinion.agentName}'s analysis. Why did they diagnose ${opinion.diagnosis[0]} with ${Math.round(opinion.confidence * 100)}% confidence?`
+    setInput(question)
+    // Switch to chat tab
+    const chatTab = document.querySelector('[value="chat"]') as HTMLButtonElement
+    chatTab?.click()
+  }
+
+  // Sort agents by type for organized display
+  const sortedAgents = Object.values(agentResults).sort((a, b) => {
+    const typeOrder = { 'blind': 0, 'informed': 1, 'scrutinizer': 2, 'final': 3 }
+    return (typeOrder[a.agentType as keyof typeof typeOrder] || 0) - 
+           (typeOrder[b.agentType as keyof typeof typeOrder] || 0)
+  })
+
   return (
-    <Card className="h-[700px] max-w-4xl mx-auto flex flex-col">
+    <Card className="h-[800px] max-w-6xl mx-auto flex flex-col">
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
-          <CardTitle className="text-xl flex items-center gap-2">
-            <Bot className="h-5 w-5" />
-            Medical Follow-up Assistant
-          </CardTitle>
+          <div>
+            <CardTitle className="text-2xl flex items-center gap-2">
+              <Brain className="h-6 w-6" />
+              Tentin DDA
+            </CardTitle>
+            <p className="text-sm text-muted-foreground mt-1">Diagnosis Discussion Agent</p>
+          </div>
           <Badge variant="outline">Session: {sessionId.slice(-8)}</Badge>
         </div>
         <div className="flex items-center gap-2 text-sm text-orange-600 dark:text-orange-400">
@@ -90,6 +124,19 @@ What would you like to know more about?
         </div>
       </CardHeader>
       <CardContent className="flex-1 flex flex-col p-0">
+        <Tabs defaultValue="chat" className="flex-1 flex flex-col">
+          <TabsList className="mx-4">
+            <TabsTrigger value="chat" className="flex items-center gap-2">
+              <MessageSquare className="h-4 w-4" />
+              Discussion
+            </TabsTrigger>
+            <TabsTrigger value="opinions" className="flex items-center gap-2">
+              <Brain className="h-4 w-4" />
+              Agent Opinions ({Object.keys(agentResults).length})
+            </TabsTrigger>
+          </TabsList>
+          
+          <TabsContent value="chat" className="flex-1 flex flex-col p-0">
         <ScrollArea className="flex-1 p-4">
           <div className="space-y-4">
             {messages.map((message) => (
@@ -110,7 +157,30 @@ What would you like to know more about?
                       ? 'bg-primary text-primary-foreground' 
                       : 'bg-muted'
                   }`}>
-                    <p className="text-sm whitespace-pre-wrap">{message.content}</p>
+                    <div className="text-sm">
+                      <ReactMarkdown 
+                        className="prose prose-sm dark:prose-invert max-w-none"
+                        components={{
+                          a: ({ href, children }) => (
+                            <a 
+                              href={href} 
+                              target="_blank" 
+                              rel="noopener noreferrer"
+                              className="text-blue-600 hover:underline"
+                            >
+                              {children}
+                            </a>
+                          ),
+                          p: ({ children }) => <p className="mb-2">{children}</p>,
+                          ul: ({ children }) => <ul className="list-disc pl-4 mb-2">{children}</ul>,
+                          ol: ({ children }) => <ol className="list-decimal pl-4 mb-2">{children}</ol>,
+                          li: ({ children }) => <li className="mb-1">{children}</li>,
+                          strong: ({ children }) => <strong className="font-semibold">{children}</strong>,
+                        }}
+                      >
+                        {message.content}
+                      </ReactMarkdown>
+                    </div>
                     <p className="text-xs opacity-70 mt-1">
                       {message.timestamp.toLocaleTimeString()}
                     </p>
@@ -163,17 +233,109 @@ What would you like to know more about?
               <Send className="h-4 w-4" />
             </Button>
           </form>
+          {selectedAgentContext && (
+            <div className="mt-2 p-2 bg-muted rounded-md text-xs text-muted-foreground">
+              Context: Asking about {selectedAgentContext.agentName}'s opinion
+            </div>
+          )}
         </div>
+          </TabsContent>
+          
+          <TabsContent value="opinions" className="flex-1 p-4">
+            <ScrollArea className="h-full">
+              <div className="space-y-4 pr-4">
+                <div className="mb-4">
+                  <h3 className="text-lg font-semibold mb-2">All Agent Opinions</h3>
+                  <p className="text-sm text-muted-foreground">
+                    Click on any card to expand details or use the message button to ask specific questions about that agent's analysis.
+                  </p>
+                </div>
+                
+                {/* Group agents by type */}
+                <div className="space-y-6">
+                  {/* Blind Agents */}
+                  <div>
+                    <h4 className="text-sm font-medium text-muted-foreground mb-3">Phase 1: Independent Analysis</h4>
+                    <div className="space-y-3">
+                      {sortedAgents
+                        .filter(agent => agent.agentType === 'blind')
+                        .map((agent, index) => (
+                          <AgentOpinionCard
+                            key={agent.agentId}
+                            opinion={agent}
+                            agentNumber={parseInt(agent.agentId.split('-')[1])}
+                            onAskAboutOpinion={handleAskAboutOpinion}
+                          />
+                        ))}
+                    </div>
+                  </div>
+                  
+                  {/* Informed Agents */}
+                  <div>
+                    <h4 className="text-sm font-medium text-muted-foreground mb-3">Phase 2: Synthesis & Analysis</h4>
+                    <div className="space-y-3">
+                      {sortedAgents
+                        .filter(agent => agent.agentType === 'informed')
+                        .map((agent, index) => (
+                          <AgentOpinionCard
+                            key={agent.agentId}
+                            opinion={agent}
+                            agentNumber={parseInt(agent.agentId.split('-')[1])}
+                            onAskAboutOpinion={handleAskAboutOpinion}
+                          />
+                        ))}
+                    </div>
+                  </div>
+                  
+                  {/* Scrutinizers */}
+                  <div>
+                    <h4 className="text-sm font-medium text-muted-foreground mb-3">Phase 3: Quality Control</h4>
+                    <div className="space-y-3">
+                      {sortedAgents
+                        .filter(agent => agent.agentType === 'scrutinizer')
+                        .map((agent, index) => (
+                          <AgentOpinionCard
+                            key={agent.agentId}
+                            opinion={agent}
+                            agentNumber={parseInt(agent.agentId.split('-')[1])}
+                            onAskAboutOpinion={handleAskAboutOpinion}
+                          />
+                        ))}
+                    </div>
+                  </div>
+                  
+                  {/* Final Authority */}
+                  <div>
+                    <h4 className="text-sm font-medium text-muted-foreground mb-3">Phase 4: Final Synthesis</h4>
+                    <div className="space-y-3">
+                      {sortedAgents
+                        .filter(agent => agent.agentType === 'final')
+                        .map((agent, index) => (
+                          <AgentOpinionCard
+                            key={agent.agentId}
+                            opinion={agent}
+                            agentNumber={parseInt(agent.agentId.split('-')[1])}
+                            onAskAboutOpinion={handleAskAboutOpinion}
+                          />
+                        ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </ScrollArea>
+          </TabsContent>
+        </Tabs>
       </CardContent>
     </Card>
   )
 }
 
-// Contextual response generator (simplified version)
+// Contextual response generator (enhanced version)
 function generateContextualResponse(
   question: string, 
   summary: ProtocolSummary, 
-  agentResults: Record<string, AgentOpinion>
+  agentResults: Record<string, AgentOpinion>,
+  selectedAgent?: AgentOpinion | null
 ): string {
   const lowerQuestion = question.toLowerCase()
   
@@ -187,7 +349,12 @@ function generateContextualResponse(
   }
   
   if (lowerQuestion.includes('why') || lowerQuestion.includes('how did')) {
-    return generateReasoningExplanation(question, agentResults)
+    return generateReasoningExplanation(question, agentResults, selectedAgent)
+  }
+  
+  // Handle agent-specific questions
+  if (selectedAgent) {
+    return generateAgentSpecificResponse(question, selectedAgent, summary, agentResults)
   }
   
   if (lowerQuestion.includes('symptom') || lowerQuestion.includes('pain') || lowerQuestion.includes('feeling')) {
@@ -247,7 +414,46 @@ Remember: These are general guidelines. Your specific situation may require diff
 **IMPORTANT:** This information is educational only. For medical emergencies or health concerns, consult qualified healthcare providers. [Emergency numbers worldwide →](https://en.wikipedia.org/wiki/List_of_emergency_telephone_numbers)`
 }
 
-function generateReasoningExplanation(question: string, agentResults: Record<string, AgentOpinion>): string {
+function generateReasoningExplanation(
+  question: string, 
+  agentResults: Record<string, AgentOpinion>,
+  selectedAgent?: AgentOpinion | null
+): string {
+  // If asking about a specific agent
+  if (selectedAgent) {
+    return `## ${selectedAgent.agentName}'s Analysis
+
+**Specialization**: ${selectedAgent.specialization}
+**Confidence**: ${Math.round(selectedAgent.confidence * 100)}%
+
+### Diagnostic Reasoning:
+${selectedAgent.reasoning}
+
+### Key Factors:
+- **Agent Type**: ${selectedAgent.agentType} (${
+  selectedAgent.agentType === 'blind' ? 'Independent analysis without seeing other opinions' :
+  selectedAgent.agentType === 'informed' ? 'Built upon previous agents\' findings' :
+  selectedAgent.agentType === 'scrutinizer' ? 'Quality control and bias detection' :
+  'Final synthesis of all opinions'
+})
+- **Primary Diagnosis**: ${selectedAgent.diagnosis[0]}
+${selectedAgent.diagnosis.length > 1 ? `- **Alternative Diagnoses**: ${selectedAgent.diagnosis.slice(1).join(', ')}` : ''}
+
+${selectedAgent.redFlags && selectedAgent.redFlags.length > 0 ? `### Red Flags Identified:
+${selectedAgent.redFlags.map(flag => `- ${flag}`).join('\\n')}` : ''}
+
+This agent's unique perspective contributes to our comprehensive analysis by ${
+  selectedAgent.specialization === 'Pattern Recognition' ? 'identifying common symptom patterns' :
+  selectedAgent.specialization === 'Differential Diagnosis' ? 'considering all possible conditions' :
+  selectedAgent.specialization === 'Rare Disease Specialist' ? 'checking for uncommon conditions others might miss' :
+  selectedAgent.specialization === 'Consensus Builder' ? 'synthesizing multiple perspectives' :
+  'providing specialized insight'
+}.
+
+**REMINDER:** This is one perspective in our 10-agent consensus system. The final diagnosis considers all agents' inputs.`;
+  }
+  
+  // Original logic for general reasoning questions
   const topAgents = Object.values(agentResults)
     .filter(a => a.confidence > 0.7)
     .slice(0, 3)
@@ -283,4 +489,149 @@ Self-care tips while monitoring:
 - Note what makes it better or worse
 
 **IMPORTANT:** This analysis is for educational purposes only. Always consult with qualified healthcare professionals for medical advice. Any worsening or new symptoms should prompt you to seek available medical care.`
+}
+
+function generateAgentSpecificResponse(
+  question: string,
+  selectedAgent: AgentOpinion,
+  summary: ProtocolSummary,
+  allAgents: Record<string, AgentOpinion>
+): string {
+  const lowerQuestion = question.toLowerCase()
+  
+  // Compare with other agents
+  if (lowerQuestion.includes('compare') || lowerQuestion.includes('different') || lowerQuestion.includes('disagree')) {
+    const otherAgents = Object.values(allAgents).filter(a => a.agentId !== selectedAgent.agentId)
+    const agreementAgents = otherAgents.filter(a => 
+      a.diagnosis.some(d => selectedAgent.diagnosis.includes(d))
+    )
+    const disagreementAgents = otherAgents.filter(a => 
+      !a.diagnosis.some(d => selectedAgent.diagnosis.includes(d))
+    )
+    
+    return `## Comparing ${selectedAgent.agentName} with Other Agents
+
+### Agreement Analysis:
+- **${agreementAgents.length} agents** share similar diagnoses
+- **${disagreementAgents.length} agents** have different perspectives
+
+### ${selectedAgent.agentName}'s Unique Contribution:
+${selectedAgent.reasoning}
+
+### How This Compares:
+${agreementAgents.length > 0 ? `
+**Agents in Agreement:**
+${agreementAgents.slice(0, 3).map(a => `- ${a.agentName}: ${a.diagnosis[0]} (${Math.round(a.confidence * 100)}%)`).join('\\n')}
+` : ''}
+
+${disagreementAgents.length > 0 ? `
+**Different Perspectives:**
+${disagreementAgents.slice(0, 3).map(a => `- ${a.agentName}: ${a.diagnosis[0]} (${Math.round(a.confidence * 100)}%)`).join('\\n')}
+` : ''}
+
+### Why These Differences Matter:
+Different agents use different diagnostic approaches, which helps ensure we don't miss important possibilities. ${selectedAgent.agentName}'s ${selectedAgent.specialization} approach specifically helps by ${
+  selectedAgent.agentType === 'blind' ? 'providing an unbiased initial assessment' :
+  selectedAgent.agentType === 'informed' ? 'building on and validating earlier findings' :
+  selectedAgent.agentType === 'scrutinizer' ? 'checking for errors and biases' :
+  'synthesizing all perspectives into a final recommendation'
+}.
+
+**REMINDER:** Multiple perspectives strengthen our analysis. Disagreement between agents is valuable as it highlights areas needing careful consideration.`;
+  }
+  
+  // Explain confidence level
+  if (lowerQuestion.includes('confidence') || lowerQuestion.includes('sure') || lowerQuestion.includes('certain')) {
+    return `## Understanding ${selectedAgent.agentName}'s Confidence Level
+
+**Confidence**: ${Math.round(selectedAgent.confidence * 100)}%
+
+### What This Means:
+${
+  selectedAgent.confidence >= 0.8 ? 'This agent has **high confidence** in their diagnosis, indicating:' :
+  selectedAgent.confidence >= 0.6 ? 'This agent has **moderate confidence** in their diagnosis, suggesting:' :
+  'This agent has **lower confidence** in their diagnosis, which means:'
+}
+
+${
+  selectedAgent.confidence >= 0.8 ? 
+  `- Strong pattern match with typical presentations
+- Clear symptom constellation
+- Consistent with medical literature
+- Few alternative explanations` :
+  selectedAgent.confidence >= 0.6 ?
+  `- Good symptom match but some uncertainty
+- Multiple possible explanations
+- Need for additional information
+- Some atypical features` :
+  `- Unclear symptom pattern
+- Many possible diagnoses
+- Significant uncertainty
+- Need for further evaluation`
+}
+
+### Factors Affecting Confidence:
+1. **Symptom Clarity**: How well symptoms match known patterns
+2. **Information Completeness**: Whether key diagnostic information is available
+3. **Differential Complexity**: Number of conditions with similar presentations
+4. **${selectedAgent.specialization}**: This agent's specific expertise area
+
+${selectedAgent.redFlags && selectedAgent.redFlags.length > 0 ? `
+### Concerns Affecting Confidence:
+${selectedAgent.redFlags.map(flag => `- ${flag}`).join('\\n')}
+` : ''}
+
+**NOTE:** Confidence levels help prioritize diagnoses but don't guarantee accuracy. Even high-confidence diagnoses require professional medical validation.`;
+  }
+  
+  // Default agent-specific response
+  return `## Deep Dive: ${selectedAgent.agentName}
+
+### About This Agent:
+- **Role**: ${selectedAgent.specialization}
+- **Phase**: ${
+  selectedAgent.agentType === 'blind' ? 'Phase 1 - Independent Analysis' :
+  selectedAgent.agentType === 'informed' ? 'Phase 2 - Synthesis & Validation' :
+  selectedAgent.agentType === 'scrutinizer' ? 'Phase 3 - Quality Control' :
+  'Phase 4 - Final Authority'
+}
+- **Approach**: ${
+  selectedAgent.agentId === 'agent-1' ? 'Pattern recognition and common presentations' :
+  selectedAgent.agentId === 'agent-2' ? 'Comprehensive differential diagnosis' :
+  selectedAgent.agentId === 'agent-3' ? 'Rare disease consideration' :
+  selectedAgent.agentId === 'agent-4' ? 'Holistic patient assessment' :
+  selectedAgent.agentId === 'agent-5' ? 'Building consensus from multiple opinions' :
+  selectedAgent.agentId === 'agent-6' ? 'Challenging assumptions and finding gaps' :
+  selectedAgent.agentId === 'agent-7' ? 'Validating against medical evidence' :
+  selectedAgent.agentId === 'agent-8' ? 'Detecting diagnostic errors' :
+  selectedAgent.agentId === 'agent-9' ? 'Checking for biases' :
+  'Synthesizing all perspectives'
+}
+
+### Key Findings:
+- **Primary Diagnosis**: ${selectedAgent.diagnosis[0]}
+- **Confidence**: ${Math.round(selectedAgent.confidence * 100)}%
+${selectedAgent.diagnosis.length > 1 ? `- **Alternatives Considered**: ${selectedAgent.diagnosis.slice(1).join(', ')}` : ''}
+
+### Detailed Reasoning:
+${selectedAgent.reasoning}
+
+${selectedAgent.recommendations && selectedAgent.recommendations.length > 0 ? `
+### Specific Recommendations:
+${selectedAgent.recommendations.map((rec, i) => `${i + 1}. ${rec}`).join('\\n')}
+` : ''}
+
+### How This Fits the Overall Picture:
+This agent's analysis ${
+  summary.primaryDiagnosis.condition === selectedAgent.diagnosis[0] ? 
+  'aligns with the final consensus' : 
+  'provides an important alternative perspective'
+}, contributing to a ${Math.round(summary.consensus * 100)}% overall consensus among agents.
+
+**Would you like to:**
+- Compare this with other agents' opinions?
+- Understand why this agent reached this conclusion?
+- Learn more about the diagnosed condition?
+
+**REMINDER:** This is one perspective in our comprehensive analysis. Always consult healthcare professionals for medical decisions.`;
 }
