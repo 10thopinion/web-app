@@ -66,7 +66,8 @@ export async function saveSession(protocol: TenthOpinionProtocol): Promise<void>
 export async function updateSessionStatus(
   sessionId: string,
   status: TenthOpinionProtocol["status"],
-  additionalData?: Partial<TenthOpinionProtocol>
+  additionalData?: Partial<TenthOpinionProtocol>,
+  originalTimestamp?: number
 ): Promise<void> {
   const updateExpressions: string[] = ["#status = :status"]
   const expressionAttributeNames: Record<string, string> = { "#status": "status" }
@@ -87,11 +88,22 @@ export async function updateSessionStatus(
     expressionAttributeValues[":expertTrigger"] = additionalData.expertTrigger
   }
 
+  // If no timestamp provided, query for the latest session
+  let timestamp = originalTimestamp
+  if (!timestamp) {
+    const session = await getSession(sessionId)
+    if (session) {
+      timestamp = session.startTime.getTime()
+    } else {
+      throw new Error(`Session ${sessionId} not found`)
+    }
+  }
+
   const command = new UpdateCommand({
     TableName: TABLE_NAME,
     Key: {
       sessionId,
-      timestamp: Date.now(), // This should be the original timestamp
+      timestamp,
     },
     UpdateExpression: `SET ${updateExpressions.join(", ")}`,
     ExpressionAttributeNames: expressionAttributeNames,

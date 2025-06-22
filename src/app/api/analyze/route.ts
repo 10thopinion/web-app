@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from "next/server"
 import { runTenthOpinionProtocol } from "@/services/bedrock"
-// import { saveSession, updateSessionStatus } from "@/services/dynamodb"
+import { saveSession, updateSessionStatus } from "@/services/dynamodb"
 import { checkExpertTrigger } from "@/services/expert-injection"
-// import { collectLearningMetrics } from "@/services/continuous-learning"
+import { collectLearningMetrics } from "@/services/continuous-learning"
 import { getPresignedUploadUrl } from "@/services/s3-upload"
 import { PatientData, AgentOpinion } from "@/types/medical"
 import { TenthOpinionProtocol, ProtocolSummary } from "@/types/protocol"
@@ -29,8 +29,8 @@ export async function POST(request: NextRequest) {
     // Save initial session
     try {
       console.log("[API] Attempting to save session to DynamoDB...")
-      // await saveSession(protocol) // TEMPORARILY DISABLED FOR DEBUGGING
-      console.log("[API] DynamoDB save skipped (temporarily disabled)")
+      await saveSession(protocol)
+      console.log("[API] Session saved to DynamoDB:", protocol.sessionId)
     } catch (dbError) {
       console.error("Failed to save session:", dbError)
       // Continue without saving - don't fail the analysis
@@ -85,8 +85,7 @@ export async function POST(request: NextRequest) {
 
     // Save final results
     try {
-      console.log("[API] Skipping DynamoDB update and learning metrics (temporarily disabled)")
-      /*
+      console.log("[API] Updating session in DynamoDB...")
       await updateSessionStatus(protocol.sessionId, "complete", {
         endTime: protocol.endTime,
         summary: protocol.summary,
@@ -101,7 +100,7 @@ export async function POST(request: NextRequest) {
         protocol.startTime,
         protocol.endTime
       )
-      */
+      console.log("[API] Session updated and metrics collected")
     } catch (dbError) {
       console.error("Failed to update session:", dbError)
     }

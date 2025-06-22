@@ -1,30 +1,22 @@
-# Tenth Opinion Protocol - Medical AI Diagnostic System
+# Tenth Opinion Protocol
 
-## 🏆 AWS Breaking Barriers Virtual Challenge Submission
+A medical AI diagnostic system that uses 10 specialized agents running on AWS Bedrock to analyze patient symptoms and provide diagnostic assessments.
 
-A revolutionary multi-agent AI system that provides comprehensive medical analysis through 10 specialized AI agents, leveraging AWS Bedrock's latest Claude 4 models to create equitable, accessible healthcare diagnostics for all.
+## Overview
 
-![Tenth Opinion Protocol](https://img.shields.io/badge/AWS-Bedrock-orange)
-![Claude 4](https://img.shields.io/badge/Claude-4-blue)
-![Next.js](https://img.shields.io/badge/Next.js-15.3-black)
-![TypeScript](https://img.shields.io/badge/TypeScript-5.8-blue)
-![License](https://img.shields.io/badge/License-MIT-green)
+This system implements a multi-agent consensus protocol where 10 AI agents with different specializations analyze patient data in phases. The agents are divided into four groups: blind diagnosticians (independent analysis), informed analysts (build on previous opinions), scrutinizers (quality control), and a final authority (synthesis).
 
-## 🚀 Project Overview
+### Technical Characteristics
 
-The Tenth Opinion Protocol reimagines medical diagnosis through collaborative AI, where 10 specialized agents work together to provide comprehensive, unbiased, and evidence-based medical assessments. Each agent - named First Opinion through Tenth Opinion - brings unique expertise and perspective to create a diagnostic consensus that surpasses individual AI or human limitations.
+- 10 agents run in 4 phases using AWS Bedrock Claude models
+- Response time: 30-60 seconds for complete analysis
+- Session data persists in DynamoDB for 24 hours then auto-deletes
+- File uploads stored temporarily in S3 with presigned URLs
+- System prompt engineering defines agent behavior, not model selection
+- Includes fallback JSON parsing for handling malformed agent responses
+- Mobile-responsive web interface built with Next.js 15.3
 
-### Key Features
-
-- **10 Specialized AI Agents**: Each with distinct medical expertise and diagnostic approaches
-- **Model-Agnostic Architecture**: Functionality depends on system prompts, not specific models
-- **Privacy-First Design**: No permanent data storage, HIPAA-compliant architecture
-- **Expert Injection System**: Human specialists can intervene when needed
-- **Continuous Learning**: Anonymous data collection for system improvement
-- **Mobile-Responsive**: Works seamlessly on all devices with photo upload capability
-- **Real-Time Analysis**: Complete diagnostic assessment in under 30 seconds
-
-## 🏗️ Architecture
+## Architecture
 
 ### Agent Structure
 
@@ -50,204 +42,197 @@ The Tenth Opinion Protocol reimagines medical diagnosis through collaborative AI
 
 ### Technology Stack
 
-- **Frontend**: Next.js 15.3, React 19.1, TypeScript, Tailwind CSS v4
-- **Backend**: Next.js API Routes, AWS SDK
-- **AI Models**: AWS Bedrock (Claude 4 Opus/Sonnet)
-- **Storage**: Amazon S3 (images), DynamoDB (sessions)
-- **Infrastructure**: AWS Lambda, CloudWatch
-- **Development**: Bun 1.2.15, Turbopack
+- Frontend: Next.js 15.3.4, React 19.0.0, TypeScript 5.8.3, Tailwind CSS 4.1.10
+- Backend: Next.js API Routes, AWS SDK v3
+- AI Models: AWS Bedrock Claude models (Haiku, Sonnet 4, Opus 4)
+- Storage: S3 for temporary files, DynamoDB for session data
+- Logging: AWS CloudWatch
+- Package Manager: Bun 1.2.15
 
-## 🚦 Getting Started
+## Setup
 
-### Prerequisites
+### Requirements
 
-- Node.js 18+ or Bun 1.2+
-- AWS Account with Bedrock access
-- AWS CLI configured
+- Bun 1.2.15 or later
+- AWS Account with Bedrock model access enabled
+- AWS credentials with permissions for Bedrock, S3, DynamoDB, and CloudWatch
 
 ### Installation
 
 ```bash
-# Clone the repository
-git clone https://github.com/yourusername/tenth-opinion-protocol.git
-cd tenth-opinion-protocol
+# Clone repository
+git clone [repository-url]
+cd tenthopinion
 
 # Install dependencies
 bun install
 
-# Set up environment variables
+# Configure environment
 cp .env.example .env
-# Edit .env with your AWS credentials
+# Edit .env with your AWS credentials and configuration
 ```
 
-### Environment Variables
+### Required Environment Variables
 
 ```env
 # AWS Configuration
 AWS_REGION=us-east-1
-AWS_ACCESS_KEY_ID=your_access_key
-AWS_SECRET_ACCESS_KEY=your_secret_key
+AWS_ACCESS_KEY_ID=[your_key]
+AWS_SECRET_ACCESS_KEY=[your_secret]
 
-# Optional: S3 and DynamoDB
-S3_BUCKET_NAME=tenth-opinion-medical-images
+# Storage Configuration
+S3_BUCKET_NAME=[your-bucket-name]
 DYNAMODB_TABLE_NAME=TenthOpinionSessions
+DYNAMODB_ANALYTICS_TABLE_NAME=TenthOpinionSessions-Analytics
+
+# Model Configuration
+MODEL_SETUP=minimal  # Options: minimal, dev, prod
 ```
 
 ### Running the Application
 
 ```bash
-# Development mode
+# Development server
 bun dev
 
 # Production build
 bun run build
-bun start
+bun run start
 
-# Run with Turbopack (faster)
-bun dev --turbo
+# Run tests
+bun test-bedrock.js       # Test Bedrock connectivity
+bun test-full-protocol.js # Test complete agent flow
 ```
 
-## 🛠️ AWS Setup
+## AWS Configuration
 
 ### 1. Enable Bedrock Models
 
-Navigate to AWS Bedrock Console and enable:
-- Claude Opus 4 (`anthropic.claude-opus-4-20250514-v1:0`)
-- Claude Sonnet 4 (`anthropic.claude-sonnet-4-20250514-v1:0`)
-- Claude 3.5 Haiku (`anthropic.claude-3-5-haiku-20240307`)
+In AWS Console > Bedrock > Model access, enable:
+- `us.anthropic.claude-opus-4-20250514-v1:0`
+- `us.anthropic.claude-sonnet-4-20250514-v1:0`
+- `us.anthropic.claude-3-5-haiku-20241022-v1:0`
 
-### 2. Create S3 Bucket (Optional)
-
-```bash
-aws s3 mb s3://tenth-opinion-medical-images-[random] --region us-east-1
-```
-
-### 3. Create DynamoDB Table (Optional)
+### 2. Create Required Resources
 
 ```bash
-aws dynamodb create-table \
-  --table-name TenthOpinionSessions \
-  --attribute-definitions \
-    AttributeName=sessionId,AttributeType=S \
-    AttributeName=timestamp,AttributeType=N \
-  --key-schema \
-    AttributeName=sessionId,KeyType=HASH \
-    AttributeName=timestamp,KeyType=RANGE \
-  --billing-mode PAY_PER_REQUEST
+# Run setup script
+bash scripts/setup-aws.sh
+
+# Or manually create:
+# S3 bucket with CORS and lifecycle rules
+# DynamoDB table with TTL enabled
+# CloudWatch log group
 ```
 
-## 💰 Cost Optimization
+### 3. IAM Permissions
 
-- **Development Mode**: Use mock data (`useMockData: true`)
-- **Testing**: Run only 2-3 agents initially
-- **Production**: Full 10-agent protocol (~$0.10-0.30 per analysis)
-- **Free Tier**: S3, DynamoDB, CloudWatch stay within limits
+Ensure your AWS credentials have:
+- `bedrock:InvokeModel` on the Claude models
+- S3 read/write on your bucket
+- DynamoDB read/write on tables
+- CloudWatch logs write permissions
 
-## 🌟 Key Innovations
+## Cost Estimates
 
-### 1. Blind/Informed Separation
-Prevents groupthink while building on collective insights
+### Model Tiers
+- **minimal**: Claude 3.5 Haiku only - $0.01-0.02 per analysis
+- **dev**: Claude Sonnet 4 only - $0.03-0.08 per analysis
+- **prod**: Mix of Opus 4 and Sonnet 4 - $0.05-0.15 per analysis
 
-### 2. Scrutinizer Layer
-Actively detects hallucinations and bias in AI diagnoses
+### AWS Services (within free tier for moderate usage)
+- S3: 5GB free storage, minimal cost for requests
+- DynamoDB: 25GB free storage with on-demand pricing
+- CloudWatch: 5GB free log ingestion
 
-### 3. Expert Injection System
-Human specialists can intervene at critical decision points
+## System Design Details
 
-### 4. Continuous Learning Pipeline
-Anonymous data collection improves diagnostic accuracy over time
+### Agent Execution Flow
 
-### 5. Model-Agnostic Design
-System effectiveness depends on prompts, not specific models
+1. **Phase 1 (Parallel)**: 4 blind agents analyze independently
+   - Pattern Recognition: Identifies common symptom patterns
+   - Differential Diagnosis: Generates comprehensive condition list
+   - Rare Disease Specialist: Checks for uncommon conditions
+   - Holistic Assessment: Reviews patient history and context
 
-## 📱 Mobile Support
+2. **Phase 2 (Sequential)**: 3 informed agents build on Phase 1
+   - Consensus Builder: Synthesizes blind opinions with meta-analysis
+   - Devil's Advocate: Challenges assumptions and finds gaps
+   - Evidence Validator: Checks against medical literature
 
-- Responsive design for all screen sizes
-- Touch-optimized interface
-- Camera integration for medical images
-- Offline-capable with service workers
+3. **Phase 3 (Parallel)**: 2 scrutinizers perform quality control
+   - Hallucination Detector: Identifies impossible diagnoses
+   - Bias Auditor: Checks for demographic biases
 
-## 🔒 Privacy & Security
+4. **Phase 4**: Final authority synthesizes all opinions
+   - Weights: 30% blind consensus, 25% validation, 25% scrutiny, 20% reasoning
 
-- **No Permanent Storage**: Patient data deleted after 24 hours
-- **Encrypted Transit**: All data encrypted with TLS 1.3
-- **HIPAA Considerations**: Architecture supports compliance
-- **Anonymous Analytics**: Only aggregate data collected
+### Technical Implementation Notes
 
-## 🤝 Contributing
+- Retry logic with exponential backoff handles transient API failures
+- JSON parsing includes fallback regex extraction for malformed responses
+- Phase delays (1 second) prevent potential rate limiting
+- Token optimization keeps prompts under model limits (800 tokens)
+- Selective disclosure testing: Agent 1 randomly receives incomplete data
+- Meta-scrutiny: Agent 5 analyzes Agent 1's reasoning process
 
-We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md) for details.
+## Data Handling
 
-### Development Workflow
+- Patient data stored in DynamoDB with 24-hour TTL
+- Uploaded files in S3 auto-delete after 24 hours
+- No personally identifiable information logged
+- Sessions identified by random IDs only
+- Analytics table stores aggregate metrics without patient data
 
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit changes (`git commit -m 'Add amazing feature'`)
-4. Push to branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
+## User Interface Components
 
-## 📊 Performance Metrics
+### Tentin DDA (Diagnosis Discussion Agent)
+- Post-analysis chat interface for follow-up questions
+- Tabbed view showing all 10 agent opinions
+- Expandable cards with full reasoning for each agent
+- Context-aware responses about specific agent analyses
+- Markdown support for formatted responses
 
-- **Analysis Time**: 20-30 seconds for full protocol
-- **Accuracy**: 82% consensus rate in testing
-- **Cost**: $0.10-0.30 per complete analysis
-- **Uptime**: 99.9% availability target
+### Main Analysis Flow
+1. Patient fills symptom form with optional structured checklist
+2. Real-time progress display shows each agent's status
+3. Results presented with primary diagnosis and confidence
+4. DDA chat activated for deeper exploration of results
 
-## 🚧 Roadmap
+## Performance Characteristics
 
-- [ ] Integration with AWS HealthScribe
-- [ ] Support for medical imaging (X-rays, MRI)
-- [ ] Multi-language support
-- [ ] Voice input capabilities
-- [ ] Offline mode with edge computing
-- [ ] Integration with EHR systems
+- Full protocol execution: 30-60 seconds
+- Individual agent response: 2-5 seconds
+- Parallel phase completion: 5-8 seconds
+- Sequential phase completion: 15-20 seconds
+- JSON parsing success rate: 95%+ with fallback extraction
 
-## 📄 License
+## Known Limitations
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+- Text-based analysis only (image upload stores but doesn't analyze)
+- English language only
+- No direct integration with medical records
+- Requires active internet connection
+- No offline functionality
+- Limited to symptom-based analysis
 
-## 🙏 Acknowledgments
+## Debugging and Testing
 
-- AWS Bedrock team for cutting-edge AI infrastructure
-- Anthropic for Claude 4 models
-- Healthcare professionals who provided domain expertise
-- Open-source community for invaluable tools
+```bash
+# Test individual components
+bun test-model-availability.js  # Check which models are accessible
+bun test-agent-debug.js        # Test agent execution with delays
+bun test-api-endpoint.js       # Test API endpoint directly
 
-## 📞 Contact
+# Check logs
+tail -f [terminal output]       # Real-time execution logs
+# AWS CloudWatch for production logs
+```
 
-- **Project Lead**: [Your Name]
-- **Email**: contact@tenthopinion.ai
-- **Website**: [tenthopinion.ai](https://tenthopinion.ai)
-- **Twitter**: [@TenthOpinionAI](https://twitter.com/TenthOpinionAI)
+## License
 
----
+MIT License - see LICENSE file for details.
 
-**Disclaimer**: This AI system is for informational purposes only and should not replace professional medical advice, diagnosis, or treatment. Always consult qualified healthcare providers for medical concerns.
+## Medical Disclaimer
 
-## 🏅 Hackathon Submission Details
-
-### Challenge Requirements Met
-
-✅ **Uses AWS Bedrock generative AI services** - Claude 4 models
-✅ **Demonstrates real-world healthcare impact** - Accessible diagnostics
-✅ **Clean, intuitive user interface** - Modern, responsive design
-✅ **Technically sound and well-engineered** - Production-ready code
-
-### Innovation Highlights
-
-1. **Multi-Agent Consensus Model**: First-of-its-kind collaborative AI diagnosis
-2. **Bias Detection**: Active monitoring for demographic and diagnostic bias
-3. **Expert Human Integration**: Seamless handoff to specialists when needed
-4. **Continuous Improvement**: Self-learning system that gets better over time
-
-### Demo Video
-
-[Watch our 5-minute demo](https://youtu.be/demo-link) showcasing the Tenth Opinion Protocol in action.
-
-### Live Demo
-
-Try it yourself at [demo.tenthopinion.ai](https://demo.tenthopinion.ai)
-
----
-
-Built with ❤️ for the AWS Breaking Barriers Virtual Challenge 2025
+This system is for informational purposes only and does not constitute medical advice. Users should consult qualified healthcare providers for medical concerns. The system explicitly includes disclaimers in all responses and provides links to emergency services.
