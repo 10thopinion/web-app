@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -32,15 +32,21 @@ export function MobilePatientForm({ onSubmit, networkQuality }: MobilePatientFor
   const [biologicalSex, setBiologicalSex] = useState<string>("other")
   const [uploadedImages, setUploadedImages] = useState<any[]>([])
   const [isUploading, setIsUploading] = useState(false)
-  const [emailDelivery, setEmailDelivery] = useState(networkQuality === "poor")
+  const [emailDelivery, setEmailDelivery] = useState(false)
   const [email, setEmail] = useState("")
+
+  useEffect(() => {
+    if (networkQuality === "poor") {
+      setEmailDelivery(true)
+    }
+  }, [networkQuality])
 
   const handleImageCapture = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files
     if (!files) return
 
     setIsUploading(true)
-    const newImages = []
+    const newImages: any[] = []
 
     for (let i = 0; i < files.length; i++) {
       const file = files[i]

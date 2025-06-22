@@ -37,7 +37,7 @@ export function useEmailResults({
           sessionId,
           summary,
           patientInfo: {
-            symptoms: [...(patientData.structuredSymptoms || []), ...patientData.symptoms],
+            symptoms: [...(patientData.structuredSymptoms?.map(s => s.label) || []), ...patientData.symptoms],
             description: patientData.description,
             age: patientData.age,
             biologicalSex: patientData.biologicalSex,

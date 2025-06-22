@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { MobileHeader } from "@/components/mobile/mobile-header"
 import { MobilePatientForm } from "@/components/mobile/mobile-patient-form"
 import { ProtocolRunner } from "@/components/protocol/protocol-runner"
@@ -15,7 +15,12 @@ export default function MobilePage() {
   const [patientData, setPatientData] = useState<PatientData | null>(null)
   const [isAnalyzing, setIsAnalyzing] = useState(false)
   const [emailDelivery, setEmailDelivery] = useState(false)
+  const [isClient, setIsClient] = useState(false)
   const networkInfo = useNetworkInfo()
+
+  useEffect(() => {
+    setIsClient(true)
+  }, [])
 
   const handleSubmit = (data: PatientData & { email?: string }) => {
     setEmailDelivery(!!data.email)
@@ -41,16 +46,18 @@ export default function MobilePage() {
     <div className="min-h-screen bg-background pb-safe">
       <MobileHeader />
       
-      {/* Network Status Badge */}
-      <div className="fixed top-20 right-4 z-50">
-        <Badge 
-          variant={networkInfo.isOnline ? (networkQuality === "excellent" ? "default" : networkQuality === "good" ? "secondary" : "outline") : "destructive"}
-          className="flex items-center gap-1"
-        >
-          {networkInfo.isOnline ? <Wifi className="h-3 w-3" /> : <WifiOff className="h-3 w-3" />}
-          {networkInfo.isOnline ? displayType : "Offline"}
-        </Badge>
-      </div>
+      {/* Network Status Badge - Client Only */}
+      {isClient && (
+        <div className="fixed top-20 right-4 z-50">
+          <Badge 
+            variant={networkInfo.isOnline ? (networkQuality === "excellent" ? "default" : networkQuality === "good" ? "secondary" : "outline") : "destructive"}
+            className="flex items-center gap-1"
+          >
+            {networkInfo.isOnline ? <Wifi className="h-3 w-3" /> : <WifiOff className="h-3 w-3" />}
+            {networkInfo.isOnline ? displayType : "Offline"}
+          </Badge>
+        </div>
+      )}
       
       <main className="container mx-auto px-4 py-4 max-w-lg">
         {!isAnalyzing ? (
@@ -86,7 +93,7 @@ export default function MobilePage() {
             )}
 
             {/* Mobile Patient Form */}
-            <MobilePatientForm onSubmit={handleSubmit} networkQuality={networkQuality} />
+            <MobilePatientForm onSubmit={handleSubmit} networkQuality={isClient ? networkQuality : undefined} />
             
             {/* Mobile Disclaimer */}
             <div className="p-4 bg-orange-50 dark:bg-orange-950/20 rounded-lg border border-orange-200 dark:border-orange-900">

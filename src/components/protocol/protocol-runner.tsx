@@ -308,7 +308,7 @@ export function ProtocolRunner({ patientData, onReset }: ProtocolRunnerProps) {
                 <div className="flex flex-wrap gap-2">
                   {/* Display structured symptoms from checklist */}
                   {patientData.structuredSymptoms && patientData.structuredSymptoms.map((symptom, idx) => (
-                    <Badge key={`structured-${idx}`} variant="secondary">{symptom}</Badge>
+                    <Badge key={`structured-${idx}`} variant="secondary">{symptom.label}</Badge>
                   ))}
                   {/* Display additional custom symptoms */}
                   {patientData.symptoms.map((symptom, idx) => (

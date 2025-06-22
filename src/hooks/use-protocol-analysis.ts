@@ -156,7 +156,7 @@ export function useProtocolAnalysis({
     // Update chat context
     setSessionId(protocol.sessionId)
     setAgentResults(results)
-    setSummary(summary)
+    setSummary(summary ?? null)
     setIsAnalysisComplete(true)
   }
 
@@ -218,7 +218,7 @@ export function useProtocolAnalysis({
     // Update chat context
     setSessionId(protocol.sessionId)
     setAgentResults(allAgentResults)
-    setSummary(summary)
+    setSummary(summary ?? null)
     setIsAnalysisComplete(true)
     
     const finalProtocol = {

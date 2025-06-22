@@ -487,7 +487,7 @@ IMPORTANT: Your response should focus on the medical analysis only. Do not inclu
     jsonContent = jsonContent.replace(/,\s*([}\]])/g, '$1')
     // Fix unescaped newlines in JSON strings
     // This is more complex - we need to find newlines within quoted strings
-    jsonContent = jsonContent.replace(/"([^"]*)"/g, (match, content) => {
+    jsonContent = jsonContent.replace(/"([^"]*)"/g, (match: string, content: string) => {
       // Replace actual newlines with escaped newlines within strings
       return '"' + content.replace(/\n/g, '\\n').replace(/\r/g, '\\r') + '"'
     })
@@ -505,7 +505,7 @@ IMPORTANT: Your response should focus on the medical analysis only. Do not inclu
       const reasoningMatch = content.match(/"reasoning"\s*:\s*"([^"]+)"/)
       
       analysisResult = {
-        diagnosis: diagnosisMatch ? diagnosisMatch[1].split(',').map(d => d.trim().replace(/"/g, '')) : ["Unable to parse diagnosis"],
+        diagnosis: diagnosisMatch ? diagnosisMatch[1].split(',').map((d: string) => d.trim().replace(/"/g, '')) : ["Unable to parse diagnosis"],
         confidence: confidenceMatch ? parseFloat(confidenceMatch[1]) : 0.5,
         reasoning: reasoningMatch ? reasoningMatch[1] : "Analysis completed but response parsing failed",
         redFlags: [],

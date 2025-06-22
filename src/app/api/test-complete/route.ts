@@ -33,7 +33,7 @@ export async function POST(request: NextRequest) {
     const summary = {
       primaryDiagnosis: results['agent-10']?.diagnosis[0] || "No consensus",
       confidence: results['agent-10']?.confidence || 0,
-      urgencyLevel: results['agent-10']?.redFlags?.length > 0 ? 'urgent' : 'moderate'
+      urgencyLevel: (results['agent-10']?.redFlags?.length ?? 0) > 0 ? 'urgent' : 'moderate'
     }
     
     return NextResponse.json({
