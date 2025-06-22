@@ -39,7 +39,7 @@ I'm here to answer any follow-up questions you may have about your symptoms or o
 
 What would you like to know more about?
 
-**IMPORTANT DISCLAIMER: ONLY ACT ON THIS ANALYSIS IF YOU HAVE 0% ACCESS TO A LICENSED DOCTOR.** If you have access to medical professionals, please consult them immediately. In emergencies, call emergency services.`,
+**IMPORTANT MEDICAL DISCLAIMER:** This AI-powered analysis is intended for informational purposes only and should not replace professional medical advice, diagnosis, or treatment. Always seek the advice of your physician or other qualified health provider with any questions you may have regarding a medical condition. If you are experiencing a medical emergency, please contact your local emergency services immediately. [Find emergency numbers worldwide →](https://en.wikipedia.org/wiki/List_of_emergency_telephone_numbers)`,
       timestamp: new Date()
     }
   ])
@@ -75,7 +75,7 @@ What would you like to know more about?
   }
 
   return (
-    <Card className="h-[600px] flex flex-col">
+    <Card className="h-[700px] max-w-4xl mx-auto flex flex-col">
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
           <CardTitle className="text-xl flex items-center gap-2">
@@ -86,7 +86,7 @@ What would you like to know more about?
         </div>
         <div className="flex items-center gap-2 text-sm text-orange-600 dark:text-orange-400">
           <AlertCircle className="h-4 w-4" />
-          <span>Remember: Only act on this if you have 0% access to a doctor</span>
+          <span>This analysis is for informational purposes only - not a substitute for professional medical care</span>
         </div>
       </CardHeader>
       <CardContent className="flex-1 flex flex-col p-0">
@@ -205,7 +205,7 @@ Key points to remember:
 
 Is there a specific aspect of this diagnosis or your symptoms you'd like me to explain further?
 
-**REMINDER: ONLY ACT ON THIS ANALYSIS IF YOU HAVE 0% ACCESS TO A LICENSED DOCTOR.**`
+**REMINDER:** This analysis is for informational purposes only. Always seek professional medical advice for health concerns.`
 }
 
 function generateExplanation(question: string, summary: ProtocolSummary): string {
@@ -222,7 +222,7 @@ Think of it like [everyday analogy to help understanding].
 
 Would you like me to explain any specific symptoms or medical terms?
 
-**DISCLAIMER: ONLY ACT ON THIS ANALYSIS IF YOU HAVE 0% ACCESS TO A LICENSED DOCTOR.**`
+**DISCLAIMER:** This analysis is provided for informational purposes only and is not a substitute for professional medical advice.`
 }
 
 function generateActionGuidance(question: string, summary: ProtocolSummary): string {
@@ -244,7 +244,7 @@ ${summary.redFlags.length > 0 ? `\nSeek immediate care if you experience:\n${sum
 
 Remember: These are general guidelines. Your specific situation may require different actions.
 
-**CRITICAL: ONLY ACT ON THIS ANALYSIS IF YOU HAVE 0% ACCESS TO A LICENSED DOCTOR.**`
+**IMPORTANT:** This information is educational only. For medical emergencies or health concerns, consult qualified healthcare providers. [Emergency numbers worldwide →](https://en.wikipedia.org/wiki/List_of_emergency_telephone_numbers)`
 }
 
 function generateReasoningExplanation(question: string, agentResults: Record<string, AgentOpinion>): string {
@@ -263,7 +263,7 @@ The key factors that led to this conclusion:
 
 Our confidence level reflects the agreement between different analytical approaches.
 
-**REMEMBER: ONLY ACT ON THIS ANALYSIS IF YOU HAVE 0% ACCESS TO A LICENSED DOCTOR.**`
+**REMINDER:** This is an AI-generated analysis for informational purposes. Always consult healthcare professionals for medical advice.`
 }
 
 function generateSymptomClarification(question: string, summary: ProtocolSummary): string {
@@ -282,5 +282,5 @@ Self-care tips while monitoring:
 - Track symptom patterns
 - Note what makes it better or worse
 
-**IMPORTANT: ONLY ACT ON THIS ANALYSIS IF YOU HAVE 0% ACCESS TO A LICENSED DOCTOR.** Any worsening or new symptoms should prompt you to seek available medical care.`
+**IMPORTANT:** This analysis is for educational purposes only. Always consult with qualified healthcare professionals for medical advice. Any worsening or new symptoms should prompt you to seek available medical care.`
 }

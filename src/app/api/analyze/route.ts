@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from "next/server"
 import { runTenthOpinionProtocol } from "@/services/bedrock"
-import { saveSession, updateSessionStatus } from "@/services/dynamodb"
+// import { saveSession, updateSessionStatus } from "@/services/dynamodb"
 import { checkExpertTrigger } from "@/services/expert-injection"
-import { collectLearningMetrics } from "@/services/continuous-learning"
+// import { collectLearningMetrics } from "@/services/continuous-learning"
 import { getPresignedUploadUrl } from "@/services/s3-upload"
-import { PatientData } from "@/types/medical"
+import { PatientData, AgentOpinion } from "@/types/medical"
 import { TenthOpinionProtocol, ProtocolSummary } from "@/types/protocol"
 
 export async function POST(request: NextRequest) {
@@ -164,10 +164,10 @@ export async function GET(request: NextRequest) {
 }
 
 function generateProtocolSummary(
-  blindAgents: any[],
-  informedAgents: any[],
-  scrutinizers: any[],
-  finalAuthority: any
+  blindAgents: AgentOpinion[],
+  informedAgents: AgentOpinion[],
+  scrutinizers: AgentOpinion[],
+  finalAuthority: AgentOpinion
 ): ProtocolSummary {
   // Count diagnosis frequencies
   const diagnosisCounts = new Map<string, number>()
@@ -240,9 +240,9 @@ function determineUrgencyLevel(
 }
 
 function calculateConsensusScore(
-  blindAgents: any[],
-  informedAgents: any[],
-  finalAuthority: any
+  blindAgents: AgentOpinion[],
+  informedAgents: AgentOpinion[],
+  finalAuthority: AgentOpinion
 ): number {
   const primaryDiagnosis = finalAuthority.diagnosis[0]
   if (!primaryDiagnosis) return 0

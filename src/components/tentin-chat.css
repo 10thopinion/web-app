@@ -6,7 +6,7 @@
   top: 6rem; /* 24 * 0.25rem */
   right: 1.25rem; /* 5 * 0.25rem */
   z-index: 9999; /* Very high z-index to ensure it's on top */
-  width: 400px;
+  width: 500px;
   height: 600px;
   max-height: calc(100vh - 120px);
   background-color: white;

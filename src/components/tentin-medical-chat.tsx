@@ -2,7 +2,7 @@
 
 import React, { useState } from "react"
 import Image from "next/image"
-import { X, Send, AlertCircle, Sparkles } from "lucide-react"
+import { X, Send, AlertCircle } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -11,6 +11,7 @@ import { motion, AnimatePresence } from "framer-motion"
 import { useChat } from "@/contexts/chat-context"
 import { AgentOpinion } from "@/types/medical"
 import { ProtocolSummary } from "@/types/protocol"
+import "./tentin-chat.css"
 
 interface ChatMessage {
   id: string
@@ -29,13 +30,17 @@ export function TentinMedicalChat() {
     isAnalysisComplete 
   } = useChat()
   
-  console.log('TentinMedicalChat - isOpen:', isOpen)
-  
-  const [messages, setMessages] = useState<ChatMessage[]>([
-    {
-      id: '1',
-      role: 'assistant',
-      content: `Good ${new Date().getHours() < 12 ? 'morning' : new Date().getHours() < 17 ? 'afternoon' : 'evening'}. I'm Tentin, your AI Medical Assistant.
+  // Initialize messages with a function to avoid hydration mismatch
+  const [messages, setMessages] = useState<ChatMessage[]>(() => {
+    const now = new Date()
+    const hour = now.getHours()
+    const timeOfDay = hour < 12 ? 'morning' : hour < 17 ? 'afternoon' : 'evening'
+    
+    return [
+      {
+        id: '1',
+        role: 'assistant',
+        content: `Good ${timeOfDay}. I'm Tentin, your AI Medical Assistant.
 
 ${summary ? `I've completed a comprehensive analysis of your symptoms using our 10-agent protocol. The primary finding is **${summary.primaryDiagnosis.condition}** with ${Math.round(summary.primaryDiagnosis.confidence * 100)}% confidence.
 
@@ -48,13 +53,14 @@ I'm here to provide clarity and answer any questions about:
 
 Please feel free to ask detailed questions. Understanding your health condition is crucial for making informed decisions.` : 'I\'ll be available to assist you once our 10-agent analysis is complete. This comprehensive evaluation typically takes 30-45 seconds and examines your symptoms from multiple medical perspectives.'}
 
-**⚠️ CRITICAL MEDICAL DISCLAIMER ⚠️**
-This AI analysis is for **INFORMATIONAL PURPOSES ONLY** and should **ONLY** be acted upon if you have **ABSOLUTELY NO ACCESS** to licensed medical professionals. 
+**⚠️ IMPORTANT MEDICAL DISCLAIMER ⚠️**
+This AI-powered analysis is intended for **informational purposes only** and should not replace professional medical advice, diagnosis, or treatment. Always seek the advice of your physician or other qualified health provider with any questions you may have regarding a medical condition.
 
-If you have ANY access to healthcare providers, please consult them immediately. For medical emergencies, call your local emergency services (911 in US, 112 in EU, 999 in UK).`,
-      timestamp: new Date()
-    }
-  ])
+If you are experiencing a medical emergency, please contact your local emergency services immediately. [Find emergency numbers worldwide →](https://en.wikipedia.org/wiki/List_of_emergency_telephone_numbers)`,
+        timestamp: now
+      }
+    ]
+  })
   const [input, setInput] = useState("")
   const [isTyping, setIsTyping] = useState(false)
 
@@ -88,11 +94,6 @@ If you have ANY access to healthcare providers, please consult them immediately.
 
   return (
     <>
-      {/* Debug Info - Remove in production */}
-      <div style={{ position: 'fixed', top: 10, left: 10, zIndex: 10000, background: 'red', color: 'white', padding: '5px' }}>
-        Chat isOpen: {isOpen ? 'YES' : 'NO'}
-      </div>
-      
       {/* Chat Window */}
       <AnimatePresence>
         {isOpen && (
@@ -102,7 +103,6 @@ If you have ANY access to healthcare providers, please consult them immediately.
             exit={{ opacity: 0, scale: 0.9, y: 20 }}
             transition={{ type: "spring", duration: 0.3 }}
             className="chat-window"
-            style={{ display: 'flex' }} // Ensure it's displayed
           >
             {/* Header */}
             <div className="chat-header">
@@ -135,7 +135,7 @@ If you have ANY access to healthcare providers, please consult them immediately.
             <div className="chat-disclaimer">
               <div className="chat-disclaimer-content">
                 <AlertCircle className="h-3 w-3 flex-shrink-0" />
-                <span>Only act on this if you have 0% access to a doctor</span>
+                <span>This analysis is for informational purposes only - not a substitute for professional medical care</span>
               </div>
             </div>
 
@@ -219,6 +219,7 @@ If you have ANY access to healthcare providers, please consult them immediately.
             </div>
           </motion.div>
         )}
+      </AnimatePresence>
     </>
   )
 }
@@ -232,7 +233,7 @@ function generateContextualResponse(
   const lowerQuestion = question.toLowerCase()
   
   // Always maintain professional medical tone
-  const disclaimer = "\n\n⚠️ **REMINDER: ONLY ACT ON THIS ANALYSIS IF YOU HAVE 0% ACCESS TO A LICENSED DOCTOR.**"
+  const disclaimer = "\n\n⚠️ **REMINDER:** This analysis is for informational purposes only. Always seek professional medical advice for health concerns."
   
   if (lowerQuestion.includes('what is') || lowerQuestion.includes('what does') || lowerQuestion.includes('mean')) {
     return generateExplanation(question, summary) + disclaimer
@@ -329,7 +330,7 @@ The key factors that led to this conclusion:
 
 Our confidence level reflects the agreement between different analytical approaches.
 
-**REMEMBER: ONLY ACT ON THIS ANALYSIS IF YOU HAVE 0% ACCESS TO A LICENSED DOCTOR.**`
+**REMINDER:** This is an AI-generated analysis for informational purposes. Always consult healthcare professionals for medical advice.`
 }
 
 function generateSymptomClarification(question: string, summary: ProtocolSummary): string {
@@ -348,5 +349,5 @@ Self-care tips while monitoring:
 - Track symptom patterns
 - Note what makes it better or worse
 
-**IMPORTANT: ONLY ACT ON THIS ANALYSIS IF YOU HAVE 0% ACCESS TO A LICENSED DOCTOR.** Any worsening or new symptoms should prompt you to seek available medical care.`
+**IMPORTANT:** This analysis is for educational purposes only. Always consult with qualified healthcare professionals for medical advice. Any worsening or new symptoms should prompt you to seek available medical care.`
 }

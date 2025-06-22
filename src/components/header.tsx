@@ -3,10 +3,9 @@
 import React from "react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
-import { MoonIcon, SunIcon, MessageCircle } from "lucide-react"
+import { MoonIcon, SunIcon } from "lucide-react"
 import { useTheme } from "next-themes"
 import { motion } from "framer-motion"
-import { Mascot } from "@/components/mascot"
 import Image from "next/image"
 import { useChat } from "@/contexts/chat-context"
 import {
@@ -15,6 +14,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip"
+import "./header.css"
 
 export function Header() {
   const { theme, setTheme } = useTheme()
@@ -55,10 +55,7 @@ export function Header() {
                   whileTap={{ scale: 0.98 }}
                 >
                   <button
-                    onClick={() => {
-                      console.log('Talk to Tentin clicked')
-                      setIsOpen(true)
-                    }}
+                    onClick={() => setIsOpen(true)}
                     className="chat-button"
                     aria-label="Talk to Tentin - AI Medical Assistant"
                   >
@@ -72,7 +69,7 @@ export function Header() {
                     <span className="chat-text">
                       Talk to Tentin
                     </span>
-                    <MessageCircle className="h-4 w-4 text-blue-500/60 ml-1" />
+                    
                     {isAnalysisComplete && (
                       <motion.div
                         initial={{ scale: 0 }}

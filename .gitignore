@@ -44,3 +44,5 @@ next-env.d.ts
 .yoyo/
 docs/
 .cursor/
+.claude/
+CLAUDE.md

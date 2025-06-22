@@ -6,11 +6,11 @@ import { PatientForm } from "@/components/protocol/patient-form"
 import { ProtocolRunner } from "@/components/protocol/protocol-runner"
 import { PatientData } from "@/types/medical"
 import { motion } from "framer-motion"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 
-import { Mascot, MascotSparkle } from "@/components/mascot"
+import { Mascot } from "@/components/mascot"
 
 export default function Home() {
   const [patientData, setPatientData] = useState<PatientData | null>(null)
@@ -259,7 +259,7 @@ export default function Home() {
                             stiffness: 500
                           }}
                         >
-                          <Mascot variant={i as any} size="sm" animate={true} />
+                          <Mascot variant={i as 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10} size="sm" animate={true} />
                         </motion.div>
                       ))}
                     </div>
