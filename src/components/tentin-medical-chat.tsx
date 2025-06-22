@@ -43,19 +43,17 @@ export function TentinMedicalChat() {
         role: 'assistant',
         content: `Good ${timeOfDay}. I'm Tentin, your AI Medical Assistant.
 
-${summary ? `I've completed a comprehensive analysis of your symptoms using our 10-agent protocol. The primary finding is **${summary.primaryDiagnosis.condition}** with ${Math.round(summary.primaryDiagnosis.confidence * 100)}% confidence.
+I'm here to help answer your medical questions and provide health information. I can assist with:
+• Understanding symptoms and their potential causes
+• Explaining medical terminology in simple terms
+• Providing general health and wellness guidance
+• Discussing when to seek medical care
+• Answering follow-up questions about health concerns
 
-I'm here to provide clarity and answer any questions about:
-• Medical terminology and what your diagnosis means
-• The significance of specific symptoms
-• Recommended next steps and urgency levels
-• Alternative diagnoses considered by our agents
-• Evidence-based health information
-
-Please feel free to ask detailed questions. Understanding your health condition is crucial for making informed decisions.` : 'I\'ll be available to assist you once our 10-agent analysis is complete. This comprehensive evaluation typically takes 30-45 seconds and examines your symptoms from multiple medical perspectives.'}
+Feel free to ask me anything about your health. I'm designed to provide clear, evidence-based information to help you make informed decisions.
 
 **⚠️ IMPORTANT MEDICAL DISCLAIMER ⚠️**
-This AI-powered analysis is intended for **informational purposes only** and should not replace professional medical advice, diagnosis, or treatment. Always seek the advice of your physician or other qualified health provider with any questions you may have regarding a medical condition.
+This AI-powered assistance is intended for **informational purposes only** and should not replace professional medical advice, diagnosis, or treatment. Always seek the advice of your physician or other qualified health provider with any questions you may have regarding a medical condition.
 
 If you are experiencing a medical emergency, please contact your local emergency services immediately. [Find emergency numbers worldwide →](https://en.wikipedia.org/wiki/List_of_emergency_telephone_numbers)`,
         timestamp: now
@@ -66,7 +64,7 @@ If you are experiencing a medical emergency, please contact your local emergency
   const [isTyping, setIsTyping] = useState(false)
 
   const handleSend = async () => {
-    if (!input.trim() || !summary) return
+    if (!input.trim()) return
 
     const userMessage: ChatMessage = {
       id: Date.now().toString(),
@@ -81,7 +79,7 @@ If you are experiencing a medical emergency, please contact your local emergency
 
     // Simulate AI response
     setTimeout(() => {
-      const response = generateContextualResponse(input, summary, agentResults || {})
+      const response = generateGeneralMedicalResponse(input, summary, agentResults || {})
       const assistantMessage: ChatMessage = {
         id: (Date.now() + 1).toString(),
         role: 'assistant',
@@ -165,27 +163,28 @@ If you are experiencing a medical emergency, please contact your local emergency
                         )}
                       </div>
                       <div className={cn("chat-bubble", message.role)}>
-                        <ReactMarkdown 
-                          className="text-sm whitespace-pre-wrap prose prose-sm dark:prose-invert max-w-none"
-                          components={{
-                            p: ({ children }) => <p className="mb-2">{children}</p>,
-                            strong: ({ children }) => <strong className="font-semibold">{children}</strong>,
-                            ul: ({ children }) => <ul className="list-disc pl-4 mb-2">{children}</ul>,
-                            li: ({ children }) => <li className="mb-1">{children}</li>,
-                            a: ({ href, children }) => (
-                              <a 
-                                href={href} 
-                                target="_blank" 
-                                rel="noopener noreferrer" 
-                                className="text-blue-500 hover:underline"
-                              >
-                                {children}
-                              </a>
-                            )
-                          }}
-                        >
-                          {message.content}
-                        </ReactMarkdown>
+                        <div className="text-sm whitespace-pre-wrap prose prose-sm dark:prose-invert max-w-none">
+                          <ReactMarkdown 
+                            components={{
+                              p: ({ children }) => <p className="mb-2">{children}</p>,
+                              strong: ({ children }) => <strong className="font-semibold">{children}</strong>,
+                              ul: ({ children }) => <ul className="list-disc pl-4 mb-2">{children}</ul>,
+                              li: ({ children }) => <li className="mb-1">{children}</li>,
+                              a: ({ href, children }) => (
+                                <a 
+                                  href={href} 
+                                  target="_blank" 
+                                  rel="noopener noreferrer" 
+                                  className="text-blue-500 hover:underline"
+                                >
+                                  {children}
+                                </a>
+                              )
+                            }}
+                          >
+                            {message.content}
+                          </ReactMarkdown>
+                        </div>
                         <p className="chat-timestamp">
                           {message.timestamp.toLocaleTimeString()}
                         </p>
@@ -224,13 +223,13 @@ If you are experiencing a medical emergency, please contact your local emergency
                 <Input
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
-                  placeholder={isAnalysisComplete ? "Ask Tentin a question..." : "Waiting for analysis..."}
-                  disabled={!isAnalysisComplete || isTyping}
+                  placeholder="Ask Tentin a medical question..."
+                  disabled={isTyping}
                   className="chat-input"
                 />
                 <Button 
                   type="submit" 
-                  disabled={!input.trim() || !isAnalysisComplete || isTyping}
+                  disabled={!input.trim() || isTyping}
                   size="icon"
                   className="bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600"
                 >
@@ -245,35 +244,37 @@ If you are experiencing a medical emergency, please contact your local emergency
   )
 }
 
-// Contextual response generator
-function generateContextualResponse(
+// General medical response generator
+function generateGeneralMedicalResponse(
   question: string, 
-  summary: ProtocolSummary, 
+  summary: ProtocolSummary | null, 
   agentResults: Record<string, AgentOpinion>
 ): string {
   const lowerQuestion = question.toLowerCase()
   
   // Always maintain professional medical tone
-  const disclaimer = "\n\n⚠️ **REMINDER:** This analysis is for informational purposes only. Always seek professional medical advice for health concerns."
+  const disclaimer = "\n\n⚠️ **REMINDER:** This information is for educational purposes only. Always seek professional medical advice for health concerns."
   
-  if (lowerQuestion.includes('what is') || lowerQuestion.includes('what does') || lowerQuestion.includes('mean')) {
-    return generateExplanation(question, summary) + disclaimer
-  }
-  
-  if (lowerQuestion.includes('should i') || lowerQuestion.includes('when to') || lowerQuestion.includes('emergency')) {
-    return generateActionGuidance(question, summary) + disclaimer
-  }
-  
-  if (lowerQuestion.includes('why') || lowerQuestion.includes('how did')) {
-    return generateReasoningExplanation(question, agentResults) + disclaimer
-  }
-  
-  if (lowerQuestion.includes('symptom') || lowerQuestion.includes('pain') || lowerQuestion.includes('feeling')) {
-    return generateSymptomClarification(question, summary) + disclaimer
-  }
-  
-  // Default comprehensive response
-  return `Thank you for your question about "${question}". Let me provide you with a thoughtful response based on our analysis.
+  // If we have analysis results, include them in context
+  if (summary) {
+    if (lowerQuestion.includes('what is') || lowerQuestion.includes('what does') || lowerQuestion.includes('mean')) {
+      return generateExplanation(question, summary) + disclaimer
+    }
+    
+    if (lowerQuestion.includes('should i') || lowerQuestion.includes('when to') || lowerQuestion.includes('emergency')) {
+      return generateActionGuidance(question, summary) + disclaimer
+    }
+    
+    if (lowerQuestion.includes('why') || lowerQuestion.includes('how did')) {
+      return generateReasoningExplanation(question, agentResults) + disclaimer
+    }
+    
+    if (lowerQuestion.includes('symptom') || lowerQuestion.includes('pain') || lowerQuestion.includes('feeling')) {
+      return generateSymptomClarification(question, summary) + disclaimer
+    }
+    
+    // Default response with analysis context
+    return `Thank you for your question about "${question}". Let me provide you with a thoughtful response based on our analysis.
 
 Our 10-agent analysis identified **${summary.primaryDiagnosis.condition}** as the primary concern. This conclusion was reached through multiple independent medical perspectives analyzing your symptoms.
 
@@ -284,6 +285,38 @@ Key points from our analysis:
 ${summary.redFlags.length > 0 ? `- **Warning signs to watch**: ${summary.redFlags[0]}` : ''}
 
 Is there a specific aspect of this diagnosis or your symptoms you'd like me to explain in more detail? I'm here to help you understand your health better.${disclaimer}`
+  }
+  
+  // General medical responses without analysis context
+  if (lowerQuestion.includes('symptom') || lowerQuestion.includes('pain') || lowerQuestion.includes('feeling')) {
+    return generateGeneralSymptomResponse(question) + disclaimer
+  }
+  
+  if (lowerQuestion.includes('should i') || lowerQuestion.includes('when to') || lowerQuestion.includes('emergency')) {
+    return generateGeneralActionGuidance(question) + disclaimer
+  }
+  
+  if (lowerQuestion.includes('what is') || lowerQuestion.includes('what does') || lowerQuestion.includes('mean')) {
+    return generateGeneralExplanation(question) + disclaimer
+  }
+  
+  // Default general response
+  return `Thank you for your question: "${question}"
+
+I'm here to help you understand health-related topics. While I can provide general medical information, I recommend using our 10-agent analysis system for a comprehensive evaluation of specific symptoms.
+
+For your question, here are some general considerations:
+- If you're experiencing symptoms, it's important to monitor their severity and duration
+- Keep track of any changes or new symptoms that develop
+- Consider factors like your medical history and current medications
+- Don't hesitate to seek professional medical care if symptoms persist or worsen
+
+Would you like to:
+1. Start a comprehensive 10-agent analysis of your symptoms?
+2. Ask more specific questions about health topics?
+3. Learn about when to seek medical care?
+
+I'm here to provide helpful health information to support your wellbeing.${disclaimer}`
 }
 
 function generateExplanation(question: string, summary: ProtocolSummary): string {
@@ -371,4 +404,98 @@ Self-care tips while monitoring:
 - Note what makes it better or worse
 
 **IMPORTANT:** This analysis is for educational purposes only. Always consult with qualified healthcare professionals for medical advice. Any worsening or new symptoms should prompt you to seek available medical care.`
+}
+
+// General response functions that work without analysis context
+function generateGeneralSymptomResponse(question: string): string {
+  return `I understand you have a question about symptoms: "${question}"
+
+When evaluating symptoms, consider these general factors:
+
+**Important considerations:**
+- **Duration**: How long have you experienced this symptom?
+- **Severity**: Rate the intensity on a scale of 1-10
+- **Pattern**: Is it constant, intermittent, or triggered by specific activities?
+- **Associated symptoms**: Are there other symptoms occurring alongside?
+
+**General guidance:**
+- Keep a symptom diary noting time, triggers, and severity
+- Monitor for any worsening or new symptoms
+- Stay hydrated and get adequate rest
+- Avoid known triggers if you've identified any
+
+**When to seek care:**
+- Severe or sudden onset symptoms
+- Symptoms lasting more than a few days without improvement
+- Fever above 103°F (39.4°C)
+- Difficulty breathing, chest pain, or severe headache
+- Any symptom that concerns you
+
+For a comprehensive evaluation of your specific symptoms, consider using our 10-agent analysis system for detailed insights.`
+}
+
+function generateGeneralActionGuidance(question: string): string {
+  return `Regarding your question about medical actions: "${question}"
+
+**General medical decision-making guidance:**
+
+**For non-emergency situations:**
+1. **Primary care**: Schedule with your regular doctor for ongoing issues
+2. **Urgent care**: For same-day needs that aren't emergencies
+3. **Telemedicine**: Convenient for minor issues and follow-ups
+4. **Walk-in clinics**: For basic care without appointments
+
+**Emergency situations - Call 911 or go to ER if you experience:**
+- Chest pain or pressure
+- Difficulty breathing
+- Severe bleeding
+- Loss of consciousness
+- Sudden confusion or difficulty speaking
+- Severe allergic reactions
+
+**Self-care considerations:**
+- Rest and hydration for minor illnesses
+- Over-the-counter medications as directed
+- Monitor symptoms and keep records
+- Follow up if symptoms persist or worsen
+
+**Making healthcare decisions:**
+- Consider symptom severity and duration
+- Factor in your medical history
+- Don't delay care for concerning symptoms
+- When in doubt, seek professional advice
+
+For personalized recommendations based on your specific symptoms, our 10-agent analysis can provide detailed guidance.`
+}
+
+function generateGeneralExplanation(question: string): string {
+  return `Let me help explain that medical concept: "${question}"
+
+**Understanding medical terms and conditions:**
+
+Medical terminology can be complex, but understanding key concepts helps you:
+- Communicate effectively with healthcare providers
+- Make informed health decisions
+- Better understand your body and health
+
+**Common medical term components:**
+- **-itis**: Inflammation (e.g., bronchitis = inflammation of bronchi)
+- **-emia**: Blood condition (e.g., anemia = low red blood cells)
+- **-pathy**: Disease (e.g., neuropathy = nerve disease)
+- **Hyper-**: Excessive (e.g., hypertension = high blood pressure)
+- **Hypo-**: Deficient (e.g., hypothyroid = underactive thyroid)
+
+**Tips for understanding medical information:**
+1. Ask your doctor to explain in simple terms
+2. Request written information or reliable resources
+3. Don't hesitate to ask questions
+4. Keep a list of medical terms to research
+
+**Finding reliable health information:**
+- Government health websites (CDC, NIH)
+- Major medical institutions
+- Peer-reviewed medical journals
+- Your healthcare provider's resources
+
+Would you like me to explain a specific medical term or condition in more detail? I'm here to help make medical information more accessible.`
 }

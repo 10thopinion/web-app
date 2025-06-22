@@ -157,9 +157,8 @@ You can explore all 10 agent opinions in the **Agent Opinions** tab or ask me an
                       ? 'bg-primary text-primary-foreground' 
                       : 'bg-muted'
                   }`}>
-                    <div className="text-sm">
+                    <div className="text-sm prose prose-sm dark:prose-invert max-w-none">
                       <ReactMarkdown 
-                        className="prose prose-sm dark:prose-invert max-w-none"
                         components={{
                           a: ({ href, children }) => (
                             <a 
