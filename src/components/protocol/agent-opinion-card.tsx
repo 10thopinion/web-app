@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useRef, useEffect } from "react";
+import React, { useRef, useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Brain,
@@ -14,6 +14,7 @@ import {
   Eye,
   CheckCircle,
   XCircle,
+  Check,
 } from "lucide-react";
 import {
   Card,
@@ -74,6 +75,7 @@ export function AgentOpinionCard({
 }: AgentOpinionCardProps) {
   const { isExpanded, toggleExpand, animatedHeight } = useExpandable();
   const contentRef = useRef<HTMLDivElement>(null);
+  const [buttonClicked, setButtonClicked] = useState(false);
   const Icon = agentIcons[opinion.specialization] || Brain;
 
   useEffect(() => {
@@ -84,7 +86,13 @@ export function AgentOpinionCard({
 
   const handleAskAboutOpinion = (e: React.MouseEvent) => {
     e.stopPropagation();
+    setButtonClicked(true);
     onAskAboutOpinion(opinion);
+    
+    // Reset after animation
+    setTimeout(() => {
+      setButtonClicked(false);
+    }, 2000);
   };
 
   return (
@@ -124,10 +132,33 @@ export function AgentOpinionCard({
                 <TooltipTrigger asChild>
                   <Button
                     size="sm"
-                    variant="outline"
+                    variant={buttonClicked ? "default" : "outline"}
                     onClick={handleAskAboutOpinion}
+                    className={buttonClicked ? "bg-green-500 hover:bg-green-600" : ""}
                   >
-                    <MessageSquare className="h-4 w-4" />
+                    <AnimatePresence mode="wait">
+                      {buttonClicked ? (
+                        <motion.div
+                          key="check"
+                          initial={{ scale: 0 }}
+                          animate={{ scale: 1 }}
+                          exit={{ scale: 0 }}
+                          transition={{ duration: 0.2 }}
+                        >
+                          <Check className="h-4 w-4" />
+                        </motion.div>
+                      ) : (
+                        <motion.div
+                          key="message"
+                          initial={{ scale: 0 }}
+                          animate={{ scale: 1 }}
+                          exit={{ scale: 0 }}
+                          transition={{ duration: 0.2 }}
+                        >
+                          <MessageSquare className="h-4 w-4" />
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
                   </Button>
                 </TooltipTrigger>
                 <TooltipContent>
@@ -240,12 +271,37 @@ export function AgentOpinionCard({
 
                     {/* Ask button - prominent when expanded */}
                     <Button
-                      className="w-full"
-                      variant="outline"
+                      className={`w-full ${buttonClicked ? "bg-green-500 hover:bg-green-600 text-white" : ""}`}
+                      variant={buttonClicked ? "default" : "outline"}
                       onClick={handleAskAboutOpinion}
                     >
-                      <MessageSquare className="h-4 w-4 mr-2" />
-                      Ask about {opinion.agentName}&apos;s opinion
+                      <AnimatePresence mode="wait">
+                        {buttonClicked ? (
+                          <motion.div
+                            key="success"
+                            className="flex items-center gap-2"
+                            initial={{ opacity: 0, scale: 0.8 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            exit={{ opacity: 0, scale: 0.8 }}
+                            transition={{ duration: 0.2 }}
+                          >
+                            <Check className="h-4 w-4" />
+                            Question sent!
+                          </motion.div>
+                        ) : (
+                          <motion.div
+                            key="default"
+                            className="flex items-center gap-2"
+                            initial={{ opacity: 0, scale: 0.8 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            exit={{ opacity: 0, scale: 0.8 }}
+                            transition={{ duration: 0.2 }}
+                          >
+                            <MessageSquare className="h-4 w-4" />
+                            Ask about {opinion.agentName}&apos;s opinion
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
                     </Button>
                   </motion.div>
                 )}

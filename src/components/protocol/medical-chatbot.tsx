@@ -1,15 +1,16 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useRef, useEffect } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Send, AlertCircle, Bot, User, Brain, MessageSquare } from "lucide-react"
+import { Send, AlertCircle, Bot, User, Brain, MessageSquare, HelpCircle } from "lucide-react"
 import { motion } from "framer-motion"
 import ReactMarkdown from "react-markdown"
+import Image from "next/image"
 import { AgentOpinion } from "@/types/medical"
 import { ProtocolSummary } from "@/types/protocol"
 import { AgentOpinionCard } from "./agent-opinion-card"
@@ -29,6 +30,8 @@ interface MedicalChatbotProps {
 
 export function MedicalChatbot({ sessionId, agentResults, summary }: MedicalChatbotProps) {
   const [selectedAgentContext, setSelectedAgentContext] = useState<AgentOpinion | null>(null)
+  const messagesEndRef = useRef<HTMLDivElement>(null)
+  const scrollAreaRef = useRef<HTMLDivElement>(null)
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
       id: '1',
@@ -52,6 +55,11 @@ You can explore all 10 agent opinions in the **Agent Opinions** tab or ask me an
   ])
   const [input, setInput] = useState("")
   const [isTyping, setIsTyping] = useState(false)
+
+  // Auto-scroll to bottom when messages change
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
+  }, [messages, isTyping])
 
   const handleSend = async () => {
     if (!input.trim()) return
@@ -111,7 +119,13 @@ You can explore all 10 agent opinions in the **Agent Opinions** tab or ask me an
         <div className="flex items-center justify-between">
           <div>
             <CardTitle className="text-2xl flex items-center gap-2">
-              <Brain className="h-6 w-6" />
+              <Image
+                src="/tentin-mascot-sm.png"
+                alt="Tentin"
+                width={28}
+                height={28}
+                className="object-contain"
+              />
               Tentin DDA
             </CardTitle>
             <p className="text-sm text-muted-foreground mt-1">Diagnosis Discussion Agent</p>
@@ -131,12 +145,12 @@ You can explore all 10 agent opinions in the **Agent Opinions** tab or ask me an
               Discussion
             </TabsTrigger>
             <TabsTrigger value="opinions" className="flex items-center gap-2">
-              <Brain className="h-4 w-4" />
+              <HelpCircle className="h-4 w-4" />
               Agent Opinions ({Object.keys(agentResults).length})
             </TabsTrigger>
           </TabsList>
           
-          <TabsContent value="chat" className="flex-1 flex flex-col p-0">
+          <TabsContent value="chat" className="flex-1 flex flex-col p-0 overflow-hidden">
         <ScrollArea className="flex-1 p-4">
           <div className="space-y-4">
             {messages.map((message) => (
@@ -217,6 +231,7 @@ You can explore all 10 agent opinions in the **Agent Opinions** tab or ask me an
                 </div>
               </motion.div>
             )}
+            <div ref={messagesEndRef} />
           </div>
         </ScrollArea>
         <div className="p-4 border-t">
@@ -240,8 +255,8 @@ You can explore all 10 agent opinions in the **Agent Opinions** tab or ask me an
         </div>
           </TabsContent>
           
-          <TabsContent value="opinions" className="flex-1 p-4">
-            <ScrollArea className="h-full">
+          <TabsContent value="opinions" className="flex-1 flex flex-col p-4 overflow-hidden">
+            <ScrollArea className="flex-1">
               <div className="space-y-4 pr-4">
                 <div className="mb-4">
                   <h3 className="text-lg font-semibold mb-2">All Agent Opinions</h3>
