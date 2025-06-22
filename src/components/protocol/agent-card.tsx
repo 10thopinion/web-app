@@ -6,7 +6,8 @@ import { Progress } from "@/components/ui/progress"
 import { cn } from "@/lib/utils"
 import { AgentOpinion } from "@/types/medical"
 import { motion } from "framer-motion"
-import { Bot, Brain, CheckCircle, AlertTriangle, Loader2 } from "lucide-react"
+
+import { Mascot, MascotSparkle } from "@/components/mascot"
 
 interface AgentCardProps {
   agent: Partial<AgentOpinion>
@@ -15,15 +16,21 @@ interface AgentCardProps {
 }
 
 export function AgentCard({ agent, status, delay = 0 }: AgentCardProps) {
-  const getStatusIcon = () => {
-    switch (status) {
-      case "waiting":
-        return <Bot className="h-5 w-5 text-muted-foreground" />
-      case "thinking":
-        return <Loader2 className="h-5 w-5 text-primary animate-spin" />
-      case "complete":
-        return <CheckCircle className="h-5 w-5 text-green-500" />
+  // Map agent IDs to mascot variants
+  const getAgentVariant = (agentId?: string): 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 => {
+    const idMap: Record<string, 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10> = {
+      "agent-1": 1,
+      "agent-2": 2,
+      "agent-3": 3,
+      "agent-4": 4,
+      "agent-5": 5,
+      "agent-6": 6,
+      "agent-7": 7,
+      "agent-8": 8,
+      "agent-9": 9,
+      "agent-10": 10
     }
+    return idMap[agentId || ""] || 1
   }
 
   const getAgentTypeColor = () => {
@@ -41,29 +48,57 @@ export function AgentCard({ agent, status, delay = 0 }: AgentCardProps) {
     }
   }
 
+  const agentVariant = getAgentVariant(agent.agentId)
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay, duration: 0.5 }}
+      whileHover={{ y: -4 }}
     >
       <Card className={cn(
-        "relative overflow-hidden transition-all duration-300",
-        status === "thinking" && "agent-active border-primary/50",
-        status === "complete" && "border-green-500/30"
+        "relative overflow-hidden transition-all duration-300 group",
+        `tenth-agent-card-${agentVariant}`,
+        status === "thinking" && "tenth-glow border-opacity-100",
+        status === "complete" && "tenth-success"
       )}>
-        <CardHeader className="pb-3">
+        {/* Floating mascot background */}
+        {status === "complete" && (
+          <div className="absolute top-2 right-2 opacity-20">
+            <Mascot variant={agentVariant} size="lg" animate={false} />
+          </div>
+        )}
+        
+        <CardHeader className="pb-3 relative">
           <div className="flex items-start justify-between">
-            <div className="space-y-1">
-              <CardTitle className="text-lg flex items-center gap-2">
-                {getStatusIcon()}
-                {agent.agentName || "Agent"}
-              </CardTitle>
-              <CardDescription className="text-sm">
-                {agent.specialization}
-              </CardDescription>
+            <div className="flex items-start gap-3">
+              {/* Agent Mascot */}
+              <div className="relative">
+                <Mascot 
+                  variant={agentVariant} 
+                  size="md" 
+                  animate={status === "thinking"}
+                  className={cn(
+                    "transition-all",
+                    status === "thinking" && "tenth-bounce",
+                    status === "complete" && "group-hover:scale-110"
+                  )}
+                />
+
+                {status === "thinking" && <MascotSparkle delay={0} />}
+              </div>
+              
+              <div className="space-y-1">
+                <CardTitle className="text-lg tenth-heading-4">
+                  {agent.agentName || "Agent"}
+                </CardTitle>
+                <CardDescription className="text-sm">
+                  {agent.specialization}
+                </CardDescription>
+              </div>
             </div>
-            <Badge variant="secondary" className={getAgentTypeColor()}>
+            <Badge variant="secondary" className={cn(getAgentTypeColor(), "tenth-badge")}>
               {agent.agentType}
             </Badge>
           </div>
@@ -115,16 +150,13 @@ export function AgentCard({ agent, status, delay = 0 }: AgentCardProps) {
               )}
               
               {agent.redFlags && agent.redFlags.length > 0 && (
-                <div className="flex items-start gap-2 p-2 bg-destructive/10 rounded-md">
-                  <AlertTriangle className="h-4 w-4 text-destructive mt-0.5" />
-                  <div>
-                    <p className="text-sm font-medium text-destructive">Red Flags:</p>
-                    <ul className="text-xs text-destructive/80 mt-1">
-                      {agent.redFlags.map((flag, idx) => (
-                        <li key={idx}>• {flag}</li>
-                      ))}
-                    </ul>
-                  </div>
+                <div className="p-2 bg-destructive/10 rounded-md">
+                  <p className="text-sm font-medium text-destructive">Red Flags:</p>
+                  <ul className="text-xs text-destructive/80 mt-1">
+                    {agent.redFlags.map((flag, idx) => (
+                      <li key={idx}>• {flag}</li>
+                    ))}
+                  </ul>
                 </div>
               )}
               

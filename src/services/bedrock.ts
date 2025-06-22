@@ -1,6 +1,7 @@
 import { BedrockRuntimeClient, InvokeModelCommand } from "@aws-sdk/client-bedrock-runtime"
 import { PatientData, AgentOpinion } from "@/types/medical"
 import { getAgentConfigs, ModelTier } from "@/types/protocol"
+import { adjustPromptForTokenBudget, countTokens } from "@/utils/prompt-optimizer"
 
 // Initialize Bedrock client
 const bedrockClient = new BedrockRuntimeClient({
@@ -271,7 +272,26 @@ export async function invokeAgent(
     // Construct the prompt based on agent type
     let systemPrompt = ""
     let userPrompt = `Patient Information:\n`
-    userPrompt += `Symptoms: ${patientData.symptoms.join(", ")}\n`
+    
+    // Include structured symptoms if available
+    if (patientData.structuredSymptoms && patientData.structuredSymptoms.length > 0) {
+      const symptomsByCategory = patientData.structuredSymptoms.reduce((acc, symptom) => {
+        if (!acc[symptom.category]) acc[symptom.category] = []
+        acc[symptom.category].push(symptom.label)
+        return acc
+      }, {} as Record<string, string[]>)
+      
+      userPrompt += `Symptoms (by system):\n`
+      Object.entries(symptomsByCategory).forEach(([category, symptoms]) => {
+        userPrompt += `  ${category}: ${symptoms.join(", ")}\n`
+      })
+    }
+    
+    // Always include free-text symptoms if available
+    if (patientData.symptoms.length > 0) {
+      userPrompt += `Additional Symptoms: ${patientData.symptoms.join(", ")}\n`
+    }
+    
     userPrompt += `Description: ${patientData.description}\n`
     
     if (patientData.age) userPrompt += `Age: ${patientData.age}\n`
@@ -280,27 +300,28 @@ export async function invokeAgent(
     if (patientData.medications?.length) userPrompt += `Current Medications: ${patientData.medications.join(", ")}\n`
     if (patientData.allergies?.length) userPrompt += `Allergies: ${patientData.allergies.join(", ")}\n`
 
-    // Set system prompt based on agent type and specialization
-    if (agentConfig.id === 'agent-1') {
-      // Use selective disclosure prompt for First Opinion if enabled
-      systemPrompt = agentConfig.selectiveDisclosure 
-        ? SYSTEM_PROMPTS.blind.patternWithSelectiveDisclosure 
-        : SYSTEM_PROMPTS.blind.pattern
-    }
-    else if (agentConfig.id === 'agent-2') systemPrompt = SYSTEM_PROMPTS.blind.differential
-    else if (agentConfig.id === 'agent-3') systemPrompt = SYSTEM_PROMPTS.blind.rare
-    else if (agentConfig.id === 'agent-4') systemPrompt = SYSTEM_PROMPTS.blind.holistic
-    else if (agentConfig.id === 'agent-5') {
-      // Use meta-scrutinizing prompt for Fifth Opinion if configured
-      systemPrompt = agentConfig.metaScrutinizes 
-        ? SYSTEM_PROMPTS.informed.consensusWithMetaScrutiny
-        : SYSTEM_PROMPTS.informed.consensus
-    }
-    else if (agentConfig.id === 'agent-6') systemPrompt = SYSTEM_PROMPTS.informed.advocate
-    else if (agentConfig.id === 'agent-7') systemPrompt = SYSTEM_PROMPTS.informed.evidence
-    else if (agentConfig.id === 'agent-8') systemPrompt = SYSTEM_PROMPTS.scrutinizer.hallucination
-    else if (agentConfig.id === 'agent-9') systemPrompt = SYSTEM_PROMPTS.scrutinizer.bias
-    else if (agentConfig.id === 'agent-10') systemPrompt = SYSTEM_PROMPTS.final
+    // Use optimized prompts based on token budget
+    // Token budget calculation: 4096 total - 500 response - ~200 user prompt = ~3400 for system prompt
+    const tokenBudget = 800 // Conservative budget to ensure we don't hit limits
+    
+    // Get agent type for optimization
+    let agentType = ''
+    if (agentConfig.id.includes('pattern')) agentType = 'pattern'
+    else if (agentConfig.id.includes('differential')) agentType = 'differential'
+    else if (agentConfig.id.includes('rare')) agentType = 'rare'
+    else if (agentConfig.id.includes('holistic')) agentType = 'holistic'
+    else if (agentConfig.id.includes('consensus')) agentType = 'consensus'
+    else if (agentConfig.id.includes('devil')) agentType = 'devil'
+    else if (agentConfig.id.includes('evidence')) agentType = 'evidence'
+    else if (agentConfig.id.includes('hallucination')) agentType = 'hallucination'
+    else if (agentConfig.id.includes('bias')) agentType = 'bias'
+    else if (agentConfig.id.includes('final')) agentType = 'final'
+    
+    // Adjust prompt based on token budget
+    systemPrompt = adjustPromptForTokenBudget(systemPrompt, tokenBudget, agentType, agentConfig.name)
+    
+    // Log token usage for debugging
+    console.log(`[Bedrock] ${agentConfig.name} prompt tokens:`, countTokens(systemPrompt))
     
     // Implement selective disclosure for agent-1
     let modifiedPatientData = { ...patientData }
@@ -325,15 +346,12 @@ export async function invokeAgent(
       }
     }
 
-    // Add previous opinions for informed agents
+    // Add previous opinions for informed agents - COMPRESSED VERSION
     if (previousOpinions && previousOpinions.length > 0 && ['agent-5', 'agent-6', 'agent-7', 'agent-8', 'agent-9', 'agent-10'].includes(agentConfig.id)) {
-      userPrompt += `\n\nPrevious Agent Opinions:\n`
+      userPrompt += `\n\nPrevious Diagnoses:\n`
       previousOpinions.forEach((opinion) => {
-        userPrompt += `\n${opinion.agentName} (${opinion.specialization}):\n`
-        userPrompt += `Diagnosis: ${opinion.diagnosis.join(", ")}\n`
-        userPrompt += `Confidence: ${Math.round(opinion.confidence * 100)}%\n`
-        userPrompt += `Reasoning: ${opinion.reasoning}\n`
-        if (opinion.redFlags?.length) userPrompt += `Red Flags: ${opinion.redFlags.join(", ")}\n`
+        // Only include critical info to reduce tokens
+        userPrompt += `${opinion.agentName}: ${opinion.diagnosis[0]} (${Math.round(opinion.confidence * 100)}%)\n`
       })
     }
 
@@ -358,7 +376,7 @@ export async function invokeAgent(
     // Prepare the request payload for Claude models
     const requestPayload = {
       anthropic_version: "bedrock-2023-05-31",
-      max_tokens: 1000,
+      max_tokens: 500,  // Reduced from 2000 to avoid token limit issues
       messages: [
         {
           role: "user",
@@ -411,7 +429,21 @@ export async function invokeAgent(
       model: agentConfig.model,
     }
   } catch (error) {
-    console.error(`Error invoking agent ${agentConfig.id}:`, error)
+    console.error(`[ERROR] Agent ${agentConfig.id} failed:`, error)
+    console.error(`[ERROR] Stack trace:`, error instanceof Error ? error.stack : 'No stack')
+    console.error(`[ERROR] Model used:`, agentConfig.model)
+    console.error(`[ERROR] Full error object:`, JSON.stringify(error, null, 2))
+    
+    // Check for specific AWS errors
+    if (error && typeof error === 'object' && 'name' in error) {
+      console.error(`[ERROR] Error name:`, error.name)
+      if ('$metadata' in error) {
+        console.error(`[ERROR] AWS metadata:`, JSON.stringify(error.$metadata, null, 2))
+      }
+      if ('message' in error) {
+        console.error(`[ERROR] Error message:`, error.message)
+      }
+    }
     
     // Return a fallback response
     return {
@@ -443,6 +475,9 @@ export async function runTenthOpinionProtocol(patientData: PatientData) {
   const AGENT_CONFIGS = getAgentConfigs(modelTier);
   
   console.log("[Bedrock] Starting protocol with model tier:", modelTier)
+  console.log("[Bedrock] Total agents to run:", 
+    AGENT_CONFIGS.blind.length + AGENT_CONFIGS.informed.length + 
+    AGENT_CONFIGS.scrutinizers.length + 1)
   
   try {
     // Phase 1: Blind agents (parallel)

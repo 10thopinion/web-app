@@ -1,160 +1,785 @@
 @import "tailwindcss";
+@import "tw-animate-css";
 
+@variant dark (&:is(.dark *));
+
+/* Tailwind v4 CSS-first configuration */
 @theme {
-  --radius: 0.5rem;
+  /* Custom tenth Opinion Medical colors */
+  --color-tenth-medical-blue: oklch(0.68 0.15 220);  /* Light professional blue */
+  --color-tenth-medical-white: oklch(0.98 0 0);
+  --color-tenth-medical-black: oklch(0.1 0 0);
   
-  --font-family-sans: var(--font-geist-sans);
-  --font-family-mono: var(--font-geist-mono);
+  /* Agent colors - Microsoft/Google triad palette */
+  --color-agent-1: oklch(0.68 0.24 244);  /* Microsoft Blue */
+  --color-agent-2: oklch(0.78 0.22 340);  /* Microsoft Red */
+  --color-agent-3: oklch(0.82 0.21 142);  /* Microsoft Green */
+  --color-agent-4: oklch(0.86 0.19 86);   /* Microsoft Yellow */
+  --color-agent-5: oklch(0.72 0.23 204);  /* Google Blue */
+  --color-agent-6: oklch(0.74 0.25 25);   /* Google Red */
+  --color-agent-7: oklch(0.79 0.23 86);   /* Google Yellow */
+  --color-agent-8: oklch(0.75 0.24 142);  /* Google Green */
+  --color-agent-9: oklch(0.79 0.13 302);  /* Purple Mix */
+  --color-agent-10: oklch(0.79 0.22 48);  /* Orange Mix */
+
+  /* Modern font stack - medical professional */
+  --font-sans: var(--font-inter), "SF Pro Display", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-serif: var(--font-merriweather), "Playfair Display", Georgia, serif;
+  --font-mono: var(--font-jetbrains), "SF Mono", Menlo, monospace;
+  --font-medical: var(--font-lexend), "SF Pro Display", -apple-system, sans-serif;
+
+  /* Custom spacing for larger sizes */
+  --spacing-18: 4.5rem;
+  --spacing-20: 5rem;
+  --spacing-24: 6rem;
+  --spacing-28: 7rem;
+  --spacing-32: 8rem;
+  --spacing-36: 9rem;
+  --spacing-40: 10rem;
+  --spacing-44: 11rem;
+  --spacing-48: 12rem;
+  --spacing-52: 13rem;
+  --spacing-56: 14rem;
+  --spacing-60: 15rem;
+  --spacing-64: 16rem;
+  --spacing-72: 18rem;
+  --spacing-80: 20rem;
+  --spacing-96: 24rem;
+
+  /* Custom border radius */
+  --radius-4xl: 2rem;
+
+  /* Letter spacing */
+  --letter-spacing-tighter: -0.05em;
+  --letter-spacing-tight: -0.025em;
+  --letter-spacing-normal: -0.01em;
+  --letter-spacing-wide: 0.025em;
+  --letter-spacing-wider: 0.05em;
+  --letter-spacing-widest: 0.1em;
+}
+
+:root {
+  --radius: 0.75rem;
+  --background: oklch(0.98 0.012 220);
+  --foreground: oklch(0.15 0.01 220);
+  --card: oklch(0.995 0.005 220);
+  --card-foreground: oklch(0.15 0.01 220);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.15 0.01 220);
+  --primary: var(--color-tenth-medical-blue);
+  --primary-foreground: oklch(1 0 0);
+  --secondary: oklch(0.92 0.08 220);
+  --secondary-foreground: oklch(0.15 0.01 220);
+  --muted: oklch(0.94 0.04 220);
+  --muted-foreground: oklch(0.45 0.02 220);
+  --accent: oklch(0.95 0.12 220);
+  --accent-foreground: oklch(0.15 0.01 0);
+  --destructive: oklch(0.61 0.23 25.77);
+  --destructive-foreground: oklch(1 0 0);
+  --border: oklch(0.90 0.05 220);
+  --input: oklch(0.95 0.02 220);
+  --ring: var(--color-tenth-medical-blue);
+  
+  /* Medical theme tokens */
+  --tenth-blue: var(--color-tenth-medical-blue);
+  --tenth-white: var(--color-tenth-medical-white);
+  --tenth-black: var(--color-tenth-medical-black);
+}
+
+.dark {
+  --background: oklch(0.10 0.03 220);
+  --foreground: oklch(0.95 0.01 220);
+  --card: oklch(0.14 0.03 220);
+  --card-foreground: oklch(0.95 0.01 220);
+  --popover: oklch(0.10 0.03 220);
+  --popover-foreground: oklch(0.95 0.01 220);
+  --primary: var(--color-tenth-medical-blue);
+  --primary-foreground: oklch(1 0 0);
+  --secondary: oklch(0.22 0.05 220);
+  --secondary-foreground: oklch(0.95 0.01 220);
+  --muted: oklch(0.22 0.04 220);
+  --muted-foreground: oklch(0.65 0.02 220);
+  --accent: oklch(0.25 0.05 25);
+  --accent-foreground: oklch(0.95 0 0);
+  --destructive: oklch(0.61 0.23 25.77);
+  --destructive-foreground: oklch(1 0 0);
+  --border: oklch(0.22 0.04 220);
+  --input: oklch(0.22 0.04 220);
+  --ring: var(--color-tenth-medical-blue);
 }
 
 @layer base {
-  :root {
-    /* Light mode colors */
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
-    --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
-    
-    /* Light blue accent color */
-    --primary: 199 89% 48%;
-    --primary-foreground: 210 40% 98%;
-    
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
-    --accent: 199 89% 94%;
-    --accent-foreground: 199 89% 48%;
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 199 89% 48%;
-    
-    /* Chart colors */
-    --chart-1: 199 89% 48%;
-    --chart-2: 190 74% 59%;
-    --chart-3: 180 62% 52%;
-    --chart-4: 210 68% 56%;
-    --chart-5: 220 70% 50%;
-  }
-
-  .dark {
-    /* Dark mode colors */
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
-    --card: 222.2 84% 4.9%;
-    --card-foreground: 210 40% 98%;
-    --popover: 222.2 84% 4.9%;
-    --popover-foreground: 210 40% 98%;
-    
-    /* Light blue accent color for dark mode */
-    --primary: 199 89% 58%;
-    --primary-foreground: 222.2 47.4% 11.2%;
-    
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
-    --accent: 199 89% 20%;
-    --accent-foreground: 199 89% 58%;
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 199 89% 58%;
-    
-    /* Chart colors for dark mode */
-    --chart-1: 199 89% 58%;
-    --chart-2: 190 74% 49%;
-    --chart-3: 180 62% 42%;
-    --chart-4: 210 68% 46%;
-    --chart-5: 220 70% 40%;
-  }
-
   * {
-    @apply border-border;
+    border-color: var(--border);
+  }
+  body {
+    background-color: var(--background);
+    color: var(--foreground);
+    font-family: var(--font-sans);
+    letter-spacing: var(--letter-spacing-normal);
+    font-size: 16px;
+    line-height: 1.6;
+  }
+}
+
+/* Custom components using CSS */
+@layer components {
+  /* Hero Animations */
+  @keyframes tenth-fade-up {
+    from {
+      opacity: 0;
+      transform: translateY(30px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
   }
   
-  body {
-    @apply bg-background text-foreground;
+  @keyframes tenth-sparkle {
+    0%, 100% {
+      opacity: 0;
+      transform: scale(0) rotate(0deg);
+    }
+    50% {
+      opacity: 1;
+      transform: scale(1) rotate(180deg);
+    }
   }
-}
+  
+  @keyframes tenth-pulse-ring {
+    0% {
+      transform: scale(0.8);
+      opacity: 0.5;
+    }
+    50% {
+      transform: scale(1.2);
+      opacity: 0;
+    }
+    100% {
+      transform: scale(1.2);
+      opacity: 0;
+    }
+  }
+  
+  .tenth-fade-up {
+    animation: tenth-fade-up 0.8s ease-out;
+  }
+  
+  /* Emotional States */
+  .tenth-happy {
+    color: var(--color-agent-3);
+    filter: brightness(1.2);
+  }
+  
+  .tenth-confident {
+    color: var(--color-agent-1);
+    font-weight: 600;
+  }
+  
+  .tenth-urgent {
+    color: var(--tenth-blue);
+    animation: tenth-pulse 1.5s ease-in-out infinite;
+  }
+  /* tenth Opinion Card - Medical design with thick light blue borders */
+  .tenth-card {
+    position: relative;
+    overflow: hidden;
+    background-color: var(--card);
+    border-radius: 1.75rem;
+    border: 8px solid var(--tenth-blue);
+    box-shadow: 0 30px 60px -15px rgba(59, 130, 246, 0.25),
+                0 20px 40px -10px rgba(59, 130, 246, 0.15),
+                0 10px 20px -5px rgba(59, 130, 246, 0.1),
+                inset 0 2px 4px 0 rgba(255, 255, 255, 0.15);
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  }
 
-/* Agent animation classes */
-@keyframes agent-pulse {
-  0%, 100% { 
-    opacity: 0.8;
-    transform: scale(1) translateY(0);
+  .tenth-card:hover {
+    transform: translateY(-10px) scale(1.03) rotateZ(-0.8deg);
+    box-shadow: 0 40px 80px -20px rgba(59, 130, 246, 0.35),
+                0 25px 50px -15px rgba(59, 130, 246, 0.2),
+                0 15px 30px -10px rgba(59, 130, 246, 0.15);
+    border-color: oklch(0.62 0.18 220);
   }
-  50% { 
-    opacity: 1;
-    transform: scale(1.02) translateY(-2px);
-  }
-}
 
-@keyframes thinking-dots {
-  0%, 20% { content: '.'; }
-  40% { content: '..'; }
-  60%, 100% { content: '...'; }
-}
-
-@keyframes fade-in-up {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
+  .tenth-card-interactive {
+    position: relative;
+    overflow: hidden;
+    background-color: var(--card);
+    border-radius: 1.25rem;
+    border: 5px solid var(--tenth-blue);
+    box-shadow: 0 20px 25px -5px rgba(59, 130, 246, 0.15),
+                0 10px 10px -5px rgba(59, 130, 246, 0.08);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    cursor: pointer;
   }
-  to {
-    opacity: 1;
+
+  .tenth-card-interactive:active {
+    transform: translateY(-2px);
+    box-shadow: 0 20px 25px -5px rgba(59, 130, 246, 0.1),
+                0 10px 10px -5px rgba(59, 130, 246, 0.04);
+  }
+
+  /* Typography - Medical and Professional */
+  .tenth-heading-1 {
+    font-size: 4.5rem;
+    font-weight: 900;
+    letter-spacing: -0.045em;
+    font-family: var(--font-serif);
+    line-height: 1.05;
+    color: var(--foreground);
+    text-shadow: 0 3px 6px rgba(0, 0, 0, 0.08),
+                 0 1px 2px rgba(0, 0, 0, 0.12);
+  }
+
+  .tenth-heading-2 {
+    font-size: 2.5rem;
+    font-weight: 700;
+    letter-spacing: -0.03em;
+    font-family: var(--font-serif);
+    line-height: 1.2;
+    color: var(--foreground);
+  }
+
+  .tenth-heading-3 {
+    font-size: 2rem;
+    font-weight: 700;
+    font-family: var(--font-medical);
+    letter-spacing: -0.025em;
+    line-height: 1.3;
+    color: var(--foreground);
+  }
+
+  .tenth-heading-4 {
+    font-size: 1.625rem;
+    font-weight: 700;
+    font-family: var(--font-medical);
+    letter-spacing: -0.02em;
+    line-height: 1.35;
+    color: var(--foreground);
+  }
+
+  .tenth-body {
+    font-size: 1.0625rem;
+    line-height: 1.75;
+    font-family: var(--font-sans);
+    letter-spacing: -0.01em;
+    color: var(--muted-foreground);
+  }
+
+  .tenth-body-large {
+    font-size: 1.25rem;
+    line-height: 1.8;
+    font-family: var(--font-sans);
+    letter-spacing: -0.015em;
+    color: var(--muted-foreground);
+  }
+
+  /* Emphasis with Bold */
+  .tenth-emphasis {
+    font-weight: 700;
+    color: var(--foreground);
+  }
+
+  .tenth-emphasis-primary {
+    font-weight: 700;
+    color: var(--tenth-blue);
+  }
+
+  /* Buttons with Medical Light Blue */
+  .tenth-button-primary {
+    position: relative;
+    padding: 0.875rem 2rem;
+    border-radius: 1rem;
+    font-weight: 700;
+    font-family: var(--font-medical);
+    letter-spacing: -0.01em;
+    color: white;
+    transition: all 200ms;
+    background: linear-gradient(135deg, var(--tenth-blue) 0%, oklch(0.62 0.18 220) 100%);
+    border: 3px solid transparent;
+    box-shadow: 0 10px 20px -5px rgba(59, 130, 246, 0.3),
+                0 6px 12px -3px rgba(59, 130, 246, 0.2),
+                inset 0 1px 2px 0 rgba(255, 255, 255, 0.2);
+    cursor: pointer;
+    overflow: hidden;
+  }
+  
+  .tenth-button-primary::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(45deg, transparent 30%, rgba(255, 255, 255, 0.2) 50%, transparent 70%);
+    transform: translateX(-100%);
+    transition: transform 0.6s;
+  }
+  
+  .tenth-button-primary:hover::before {
+    transform: translateX(100%);
+  }
+
+  .tenth-button-primary:hover {
+    background-color: oklch(0.62 0.18 220);
+    transform: translateY(-2px) scale(1.05);
+    box-shadow: 0 20px 25px -5px rgba(59, 130, 246, 0.1),
+                0 10px 10px -5px rgba(59, 130, 246, 0.04);
+  }
+
+  .tenth-button-primary:active {
     transform: translateY(0);
+    box-shadow: 0 10px 15px -3px rgba(59, 130, 246, 0.1),
+                0 4px 6px -2px rgba(59, 130, 246, 0.05);
+  }
+
+  .tenth-button-secondary {
+    position: relative;
+    padding: 0.875rem 2rem;
+    border-radius: 1rem;
+    font-weight: 700;
+    font-family: var(--font-medical);
+    letter-spacing: -0.01em;
+    transition: all 200ms;
+    background-color: transparent;
+    color: var(--tenth-blue);
+    border: 4px solid var(--tenth-blue);
+    cursor: pointer;
+    overflow: hidden;
+  }
+
+  .tenth-button-secondary:hover {
+    background-color: var(--tenth-blue);
+    color: white;
+    transform: translateY(-2px) scale(1.05);
+    box-shadow: 0 10px 15px -3px rgba(59, 130, 246, 0.1),
+                0 4px 6px -2px rgba(59, 130, 246, 0.05);
+  }
+
+  /* Badge with medical design */
+  .tenth-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.375rem 1rem;
+    border-radius: 9999px;
+    font-size: 0.875rem;
+    font-weight: 600;
+    font-family: var(--font-medical);
+    background: linear-gradient(135deg, rgba(59, 130, 246, 0.1) 0%, rgba(59, 130, 246, 0.05) 100%);
+    color: var(--tenth-blue);
+    border: 3px solid var(--tenth-blue);
+    box-shadow: 0 4px 12px -2px rgba(59, 130, 246, 0.2),
+                inset 0 1px 2px 0 rgba(255, 255, 255, 0.1);
+    transition: all 0.3s ease;
+  }
+  
+  .tenth-badge:hover {
+    transform: translateY(-2px) scale(1.05);
+    box-shadow: 0 8px 20px -4px rgba(59, 130, 246, 0.3);
+  }
+
+  .dark .tenth-badge {
+    background: rgba(59, 130, 246, 0.15);
+    color: oklch(0.85 0.15 220);
+  }
+
+  /* Agent Cards with specific colors */
+  .tenth-agent-card {
+    position: relative;
+    overflow: hidden;
+    background-color: var(--card);
+    border-radius: 2.25rem;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    padding: 2.5rem;
+    border-width: 10px;
+    border-style: solid;
+    box-shadow: 0 35px 70px -18px rgba(0, 0, 0, 0.25),
+                0 25px 50px -15px rgba(0, 0, 0, 0.18),
+                0 15px 30px -10px rgba(0, 0, 0, 0.12),
+                inset 0 3px 6px 0 rgba(255, 255, 255, 0.25);
+    position: relative;
+    overflow: visible;
+  }
+
+  .tenth-agent-card-1 { 
+    border-color: var(--color-agent-1);
+    background: linear-gradient(135deg, var(--card) 0%, oklch(from var(--color-agent-1) l c h / 0.08) 100%);
+  }
+  .tenth-agent-card-2 { 
+    border-color: var(--color-agent-2);
+    background: linear-gradient(135deg, var(--card) 0%, oklch(from var(--color-agent-2) l c h / 0.08) 100%);
+  }
+  .tenth-agent-card-3 { 
+    border-color: var(--color-agent-3);
+    background: linear-gradient(135deg, var(--card) 0%, oklch(from var(--color-agent-3) l c h / 0.08) 100%);
+  }
+  .tenth-agent-card-4 { 
+    border-color: var(--color-agent-4);
+    background: linear-gradient(135deg, var(--card) 0%, oklch(from var(--color-agent-4) l c h / 0.08) 100%);
+  }
+  .tenth-agent-card-5 { 
+    border-color: var(--color-agent-5);
+    background: linear-gradient(135deg, var(--card) 0%, oklch(from var(--color-agent-5) l c h / 0.08) 100%);
+  }
+  .tenth-agent-card-6 { 
+    border-color: var(--color-agent-6);
+    background: linear-gradient(135deg, var(--card) 0%, oklch(from var(--color-agent-6) l c h / 0.08) 100%);
+  }
+  .tenth-agent-card-7 { 
+    border-color: var(--color-agent-7);
+    background: linear-gradient(135deg, var(--card) 0%, oklch(from var(--color-agent-7) l c h / 0.08) 100%);
+  }
+  .tenth-agent-card-8 { 
+    border-color: var(--color-agent-8);
+    background: linear-gradient(135deg, var(--card) 0%, oklch(from var(--color-agent-8) l c h / 0.08) 100%);
+  }
+  .tenth-agent-card-9 { 
+    border-color: var(--color-agent-9);
+    background: linear-gradient(135deg, var(--card) 0%, oklch(from var(--color-agent-9) l c h / 0.08) 100%);
+  }
+  .tenth-agent-card-10 { 
+    border-color: var(--color-agent-10);
+    background: linear-gradient(135deg, var(--card) 0%, oklch(from var(--color-agent-10) l c h / 0.08) 100%);
+  }
+
+  .tenth-agent-card:hover {
+    transform: translateY(-16px) scale(1.035) rotateZ(-1deg);
+    box-shadow: 0 40px 80px -20px rgba(0, 0, 0, 0.3),
+                0 25px 50px -15px rgba(0, 0, 0, 0.2),
+                inset 0 3px 6px 0 rgba(255, 255, 255, 0.25);
+  }
+  
+  .tenth-agent-card::before {
+    content: '';
+    position: absolute;
+    top: -2px;
+    left: -2px;
+    right: -2px;
+    bottom: -2px;
+    background: linear-gradient(45deg, var(--card) 30%, transparent 50%, var(--card) 70%);
+    border-radius: 2rem;
+    opacity: 0;
+    transition: opacity 0.4s ease;
+    pointer-events: none;
+  }
+  
+  .tenth-agent-card:hover::before {
+    opacity: 1;
+  }
+
+  /* Loading States */
+  @keyframes tenth-pulse {
+    0%, 100% {
+      opacity: 1;
+      transform: scale(1);
+    }
+    50% {
+      opacity: 0.8;
+      transform: scale(0.98);
+    }
+  }
+  
+  /* Emotional micro-interactions */
+  @keyframes tenth-bounce {
+    0%, 100% {
+      transform: translateY(0);
+    }
+    50% {
+      transform: translateY(-12px);
+    }
+  }
+  
+  @keyframes tenth-glow {
+    0%, 100% {
+      box-shadow: 0 0 20px rgba(59, 130, 246, 0.3);
+    }
+    50% {
+      box-shadow: 0 0 40px rgba(59, 130, 246, 0.5);
+    }
+  }
+  
+  @keyframes tenth-float {
+    0%, 100% {
+      transform: translateY(0px) rotate(0deg);
+    }
+    25% {
+      transform: translateY(-10px) rotate(-5deg);
+    }
+    75% {
+      transform: translateY(-10px) rotate(5deg);
+    }
+  }
+
+  @keyframes tenth-heartbeat {
+    0%, 100% {
+      transform: scale(1);
+    }
+    20% {
+      transform: scale(1.1);
+    }
+    40% {
+      transform: scale(1);
+    }
+    60% {
+      transform: scale(1.15);
+    }
+    80% {
+      transform: scale(1);
+    }
+  }
+
+  @keyframes tenth-rotate {
+    from {
+      transform: rotate(0deg);
+    }
+    to {
+      transform: rotate(360deg);
+    }
+  }
+
+  @keyframes tenth-shake {
+    0%, 100% {
+      transform: translateX(0);
+    }
+    25% {
+      transform: translateX(-5px);
+    }
+    75% {
+      transform: translateX(5px);
+    }
+  }
+  
+  @keyframes gradient-x {
+    0%, 100% {
+      background-position: 0% 50%;
+    }
+    50% {
+      background-position: 100% 50%;
+    }
+  }
+  
+  .animate-gradient-x {
+    background-size: 200% 200%;
+    animation: gradient-x 5s ease infinite;
+  }
+  
+  .tenth-bounce {
+    animation: tenth-bounce 1.5s ease-in-out infinite;
+  }
+  
+  .tenth-glow {
+    animation: tenth-glow 2s ease-in-out infinite;
+  }
+  
+  .tenth-float {
+    animation: tenth-float 4s ease-in-out infinite;
+  }
+
+  .tenth-heartbeat {
+    animation: tenth-heartbeat 2s ease-in-out infinite;
+  }
+
+  .tenth-rotate {
+    animation: tenth-rotate 20s linear infinite;
+  }
+
+  .tenth-shake {
+    animation: tenth-shake 0.5s ease-in-out;
+  }
+
+  .tenth-loading {
+    animation: tenth-pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  }
+
+  /* Success/Error States */
+  .tenth-success {
+    position: relative;
+    overflow: hidden;
+    background-color: var(--card);
+    border-radius: 0.75rem;
+    box-shadow: 0 10px 15px -3px rgba(16, 185, 129, 0.1),
+                0 4px 6px -2px rgba(16, 185, 129, 0.05);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    padding: 1rem;
+    background: linear-gradient(135deg, var(--card) 0%, rgba(16, 185, 129, 0.1) 100%);
+    border: 3px solid rgb(16, 185, 129);
+  }
+
+  .tenth-error {
+    position: relative;
+    overflow: hidden;
+    background-color: var(--card);
+    border-radius: 0.75rem;
+    box-shadow: 0 10px 15px -3px rgba(239, 68, 68, 0.1),
+                0 4px 6px -2px rgba(239, 68, 68, 0.05);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    padding: 1rem;
+    background: linear-gradient(135deg, var(--card) 0%, rgba(239, 68, 68, 0.1) 100%);
+    border: 3px solid rgb(239, 68, 68);
+  }
+
+  /* Medical trust indicators */
+  .tenth-trust-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    background: linear-gradient(135deg, var(--card) 0%, rgba(16, 185, 129, 0.05) 100%);
+    border: 2px solid rgba(16, 185, 129, 0.3);
+    border-radius: 9999px;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: rgb(16, 185, 129);
+    transition: all 0.2s ease;
+  }
+
+  .tenth-trust-badge:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.15);
+  }
+
+  /* Progress indicator */
+  .tenth-progress-ring {
+    transform: rotate(-90deg);
+    transition: stroke-dashoffset 0.35s;
+  }
+
+  /* Mascot container */
+  .tenth-mascot {
+    display: inline-block;
+    transition: all 0.3s ease;
+  }
+
+  .tenth-mascot:hover {
+    transform: scale(1.1) rotate(-5deg);
+  }
+
+  /* Gradient backgrounds */
+  .tenth-gradient-medical {
+    position: relative;
+    background: radial-gradient(circle at 20% 50%, rgba(59, 130, 246, 0.08) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(16, 185, 129, 0.08) 0%, transparent 50%),
+                radial-gradient(circle at 40% 80%, rgba(79, 172, 254, 0.06) 0%, transparent 50%),
+                radial-gradient(circle at 60% 30%, rgba(147, 51, 234, 0.04) 0%, transparent 50%);
+  }
+  
+  .tenth-gradient-medical::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle at 50% 50%, transparent 0%, rgba(var(--background), 0.5) 100%);
+    pointer-events: none;
+  }
+  
+  /* Input styling */
+  .tenth-input {
+    border: 3px solid var(--border);
+    border-radius: 0.75rem;
+    padding: 0.75rem 1rem;
+    font-family: var(--font-medical);
+    transition: all 0.2s ease;
+    background: var(--background);
+  }
+  
+  .tenth-input:focus {
+    border-color: var(--tenth-blue);
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    outline: none;
+  }
+  
+  .tenth-input:hover {
+    border-color: var(--tenth-blue);
+  }
+  
+  /* Form styling */
+  .tenth-form-card {
+    position: relative;
+    overflow: hidden;
+    background: var(--card);
+    border-radius: 1.5rem;
+    border: 4px solid var(--tenth-blue);
+    box-shadow: 0 30px 60px -15px rgba(59, 130, 246, 0.2),
+                0 20px 40px -10px rgba(59, 130, 246, 0.15),
+                inset 0 1px 3px 0 rgba(255, 255, 255, 0.1);
+    padding: 2rem;
+  }
+
+  /* Focus Styles for Accessibility */
+  .tenth-button-primary:focus-visible,
+  .tenth-button-secondary:focus-visible,
+  .tenth-card-interactive:focus-visible {
+    outline: 3px solid var(--tenth-blue);
+    outline-offset: 2px;
   }
 }
 
-.agent-active {
-  animation: agent-pulse 2s ease-in-out infinite;
+/* Responsive adjustments */
+@media (max-width: 1024px) {
+  .tenth-heading-1 {
+    font-size: 2.5rem;
+  }
+
+  .tenth-heading-2 {
+    font-size: 2rem;
+  }
 }
 
-.thinking::after {
-  content: '.';
-  animation: thinking-dots 1.5s infinite;
-  display: inline-block;
-  width: 20px;
-  text-align: left;
+@media (max-width: 768px) {
+  .tenth-heading-1 {
+    font-size: 2.25rem;
+  }
+
+  .tenth-heading-2 {
+    font-size: 1.875rem;
+  }
 }
 
-.fade-in-up {
-  animation: fade-in-up 0.5s ease-out;
+/* Accessibility Enhancements */
+@media (prefers-reduced-motion: reduce) {
+  .tenth-card,
+  .tenth-button-primary,
+  .tenth-button-secondary,
+  .tenth-agent-card {
+    transition: none;
+  }
+
+  .tenth-bounce,
+  .tenth-glow,
+  .tenth-float,
+  .tenth-heartbeat,
+  .tenth-rotate,
+  .tenth-shake {
+    animation: none;
+  }
 }
 
-/* Smooth transitions */
-* {
-  @apply transition-colors duration-200;
+/* High DPI Display Optimizations */
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+  .tenth-card,
+  .tenth-agent-card {
+    border-width: 2px;
+  }
 }
 
-/* Scrollbar styling */
+/* Custom scrollbar */
 ::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  width: 12px;
+  height: 12px;
 }
 
 ::-webkit-scrollbar-track {
-  @apply bg-muted;
+  background: var(--muted);
+  border-radius: 6px;
 }
 
 ::-webkit-scrollbar-thumb {
-  @apply bg-muted-foreground/30 rounded-full;
+background: var(--tenth-blue);
+border-radius: 6px;
+border: 2px solid var(--background);
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  @apply bg-muted-foreground/50;
-}
-
-/* Mobile-friendly tap targets */
-@media (hover: none) {
-  button, a, input, textarea, select {
-    min-height: 44px;
-    min-width: 44px;
-  }
+background: oklch(0.62 0.18 220);
 }

@@ -26,7 +26,7 @@ The Tenth Opinion Protocol is a revolutionary medical AI diagnostic system that 
 ```
 ┌─────────────────────────────────────────────────────────────┐
 │                      Patient Interface                        │
-│                   (Next.js 15.3 + React 19)                  │
+│                   (Next.js 15.3.4 + React 19.1)                  │
 └─────────────────────┬───────────────────────────────────────┘
                       │
 ┌─────────────────────▼───────────────────────────────────────┐

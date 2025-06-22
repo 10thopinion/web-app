@@ -1,0 +1,64 @@
+/* Override ALL transitions and animations in the symptom checklist */
+.symptom-checklist-container,
+.symptom-checklist-container * {
+  transition: none !important;
+  animation: none !important;
+  transform: none !important;
+}
+
+/* Remove ALL hover effects */
+.symptom-checklist-container *:hover {
+  transform: none !important;
+  transition: none !important;
+}
+
+/* Ensure checkboxes have no animation */
+.symptom-checklist-container input[type="checkbox"],
+.symptom-checklist-container input[type="checkbox"]:checked,
+.symptom-checklist-container input[type="checkbox"]:hover,
+.symptom-checklist-container [data-state="checked"],
+.symptom-checklist-container [data-state="unchecked"] {
+  transition: none !important;
+  animation: none !important;
+}
+
+/* Remove badge animations */
+.symptom-checklist-container .badge,
+.symptom-checklist-container [role="badge"] {
+  transition: none !important;
+  transform: none !important;
+}
+
+/* Ensure cards don't animate */
+.symptom-checklist-container .card {
+  transition: none !important;
+  transform: none !important;
+}
+
+/* Disable all focus animations */
+.symptom-checklist-container *:focus,
+.symptom-checklist-container *:focus-visible {
+  transition: none !important;
+  animation: none !important;
+}
+
+/* Prevent layout shifts */
+.symptom-checklist-container {
+  will-change: auto !important;
+}
+
+/* Force instant background color changes */
+.symptom-checklist-container button,
+.symptom-checklist-container label {
+  transition-property: none !important;
+}
+
+/* Prevent scroll behavior on focus */
+.symptom-checklist-container *:focus {
+  scroll-behavior: auto !important;
+}
+
+/* Prevent scroll jumping */
+.symptom-checklist-container {
+  overflow-anchor: none !important;
+}

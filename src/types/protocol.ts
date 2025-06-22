@@ -47,9 +47,9 @@ export type ModelTier = 'minimal' | 'dev' | 'prod';
 function getModelForTier(tier: ModelTier, priority: 'critical' | 'standard' | 'basic'): string {
   const models = {
     minimal: {
-      critical: 'anthropic.claude-3-5-haiku-20241022-v1:0',
-      standard: 'anthropic.claude-3-5-haiku-20241022-v1:0',
-      basic: 'anthropic.claude-3-5-haiku-20241022-v1:0'
+      critical: 'us.anthropic.claude-3-5-haiku-20241022-v1:0',
+      standard: 'us.anthropic.claude-3-5-haiku-20241022-v1:0',
+      basic: 'us.anthropic.claude-3-5-haiku-20241022-v1:0'
     },
     dev: {
       critical: 'us.anthropic.claude-sonnet-4-20250514-v1:0',
@@ -59,7 +59,7 @@ function getModelForTier(tier: ModelTier, priority: 'critical' | 'standard' | 'b
     prod: {
       critical: 'us.anthropic.claude-opus-4-20250514-v1:0',
       standard: 'us.anthropic.claude-sonnet-4-20250514-v1:0',
-      basic: 'anthropic.claude-3-5-haiku-20241022-v1:0'
+      basic: 'us.anthropic.claude-3-5-haiku-20241022-v1:0'
     }
   };
   
@@ -185,9 +185,8 @@ export function getAgentConfigs(modelTier: ModelTier = 'dev') {
   };
 }
 
-// Export the configurations based on environment variable
-const modelTier = (process.env.MODEL_SETUP as ModelTier) || 'dev';
-export const AGENT_CONFIGS = getAgentConfigs(modelTier);
+// Export the configurations dynamically to ensure env vars are loaded
+export const AGENT_CONFIGS = getAgentConfigs((process.env.MODEL_SETUP as ModelTier) || 'dev');
 
 // Cost estimation per tier
 export const TIER_COSTS = {

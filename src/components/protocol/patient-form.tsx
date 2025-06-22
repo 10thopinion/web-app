@@ -8,9 +8,12 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Badge } from "@/components/ui/badge"
-import { X, Upload, Image as ImageIcon, AlertCircle } from "lucide-react"
+import { X, Upload, Stethoscope, Pill, Shield, Sparkles } from "lucide-react"
 import { PatientData, UploadedImage } from "@/types/medical"
+import { SystemSymptom } from "@/types/symptom-checklist"
 import { motion, AnimatePresence } from "framer-motion"
+import { Mascot } from "@/components/mascot"
+import { SymptomChecklist } from "./symptom-checklist"
 
 interface PatientFormProps {
   onSubmit: (data: PatientData) => void
@@ -20,6 +23,7 @@ interface PatientFormProps {
 export function PatientForm({ onSubmit, isLoading }: PatientFormProps) {
   const [symptoms, setSymptoms] = useState<string[]>([])
   const [currentSymptom, setCurrentSymptom] = useState("")
+  const [structuredSymptoms, setStructuredSymptoms] = useState<SystemSymptom[]>([])
   const [description, setDescription] = useState("")
   const [medicalHistory, setMedicalHistory] = useState("")
   const [medications, setMedications] = useState<string[]>([])
@@ -29,6 +33,7 @@ export function PatientForm({ onSubmit, isLoading }: PatientFormProps) {
   const [age, setAge] = useState("")
   const [biologicalSex, setBiologicalSex] = useState<"male" | "female" | "other">("other")
   const [uploadedImages, setUploadedImages] = useState<UploadedImage[]>([])
+  const [isUploading, setIsUploading] = useState(false)
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     accept: {
@@ -36,16 +41,70 @@ export function PatientForm({ onSubmit, isLoading }: PatientFormProps) {
     },
     maxSize: 5 * 1024 * 1024, // 5MB
     onDrop: async (acceptedFiles) => {
-      // For demo purposes, we'll use local URLs
-      // In production, this would upload to S3
-      const newImages = acceptedFiles.map(file => ({
-        id: Math.random().toString(36).substr(2, 9),
-        url: URL.createObjectURL(file),
-        type: 'other' as const,
-        file,
-        description: '' // User can add description
-      }))
+      // Generate a session ID for organizing uploads
+      const sessionId = Math.random().toString(36).substr(2, 9)
+      
+      setIsUploading(true)
+      
+      // Upload each file to S3
+      const uploadPromises = acceptedFiles.map(async (file) => {
+        try {
+          // First, get presigned URL from our API
+          const response = await fetch('/api/upload', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              fileName: file.name,
+              contentType: file.type,
+              fileSize: file.size,
+              sessionId
+            })
+          })
+          
+          if (!response.ok) {
+            throw new Error('Failed to get upload URL')
+          }
+          
+          const { uploadUrl, key } = await response.json()
+          
+          // Upload directly to S3
+          const uploadResponse = await fetch(uploadUrl, {
+            method: 'PUT',
+            body: file,
+            headers: {
+              'Content-Type': file.type,
+            }
+          })
+          
+          if (!uploadResponse.ok) {
+            throw new Error('Failed to upload file')
+          }
+          
+          // Create image object with S3 key
+          return {
+            id: Math.random().toString(36).substr(2, 9),
+            url: URL.createObjectURL(file), // Keep local preview
+            s3Key: key,
+            type: 'other' as const,
+            file,
+            description: ''
+          }
+        } catch (error) {
+          console.error('Upload failed:', error)
+          // Fallback to local URL if upload fails
+          return {
+            id: Math.random().toString(36).substr(2, 9),
+            url: URL.createObjectURL(file),
+            type: 'other' as const,
+            file,
+            description: ''
+          }
+        }
+      })
+      
+      const newImages = await Promise.all(uploadPromises)
       setUploadedImages(prev => [...prev, ...newImages])
+      setIsUploading(false)
     }
   })
 
@@ -66,6 +125,7 @@ export function PatientForm({ onSubmit, isLoading }: PatientFormProps) {
     const patientData: PatientData = {
       id: Math.random().toString(36).substr(2, 9),
       symptoms,
+      structuredSymptoms: structuredSymptoms.length > 0 ? structuredSymptoms : undefined,
       description,
       medicalHistory: medicalHistory || undefined,
       medications: medications.length > 0 ? medications : undefined,
@@ -79,21 +139,60 @@ export function PatientForm({ onSubmit, isLoading }: PatientFormProps) {
     onSubmit(patientData)
   }
 
-  const isFormValid = symptoms.length > 0 && description.trim().length > 0
+  const isFormValid = (symptoms.length > 0 || structuredSymptoms.length > 0) && description.trim().length > 0
 
   return (
-    <Card className="w-full max-w-4xl mx-auto">
-      <CardHeader>
-        <CardTitle>Patient Information</CardTitle>
-        <CardDescription>
-          Provide detailed information about your symptoms for analysis
-        </CardDescription>
-      </CardHeader>
+    <motion.div
+      id="patient-form"
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5 }}
+    >
+      <Card className="w-full max-w-4xl mx-auto tenth-form-card">
+        <CardHeader className="relative overflow-hidden">
+          <motion.div 
+            className="absolute top-4 right-4 opacity-20"
+            animate={{ 
+              rotate: [0, 10, -10, 0],
+              scale: [1, 1.1, 1]
+            }}
+            transition={{
+              duration: 8,
+              repeat: Infinity,
+              ease: "easeInOut"
+            }}
+          >
+            <Mascot size="lg" animate />
+          </motion.div>
+          <div className="flex items-center gap-4">
+            <motion.div 
+              className="p-4 bg-gradient-to-br from-primary/20 to-primary/10 rounded-2xl"
+              whileHover={{ scale: 1.1, rotate: 5 }}
+            >
+              <Stethoscope className="h-8 w-8 text-primary" />
+            </motion.div>
+            <div>
+              <CardTitle className="text-2xl md:text-3xl tenth-heading-3">Patient Information</CardTitle>
+              <CardDescription className="text-base tenth-body">
+                Your symptoms will be analyzed from 10 different medical perspectives
+              </CardDescription>
+            </div>
+          </div>
+        </CardHeader>
       <CardContent>
-        <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Symptoms */}
+        <form onSubmit={handleSubmit} className="space-y-6" noValidate>
+          {/* Symptom Checklist */}
+          <SymptomChecklist 
+            selectedSymptoms={structuredSymptoms}
+            onSymptomsChange={setStructuredSymptoms}
+          />
+
+          {/* Additional Symptoms */}
           <div className="space-y-2">
-            <Label htmlFor="symptoms">Symptoms *</Label>
+            <Label htmlFor="symptoms">Additional Symptoms (Optional)</Label>
+            <p className="text-sm text-muted-foreground mb-2">
+              If your symptoms aren't listed above, add them here
+            </p>
             <div className="flex gap-2">
               <Input
                 id="symptoms"
@@ -101,6 +200,7 @@ export function PatientForm({ onSubmit, isLoading }: PatientFormProps) {
                 onChange={(e) => setCurrentSymptom(e.target.value)}
                 onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addItem(currentSymptom, setSymptoms, setCurrentSymptom))}
                 placeholder="Enter a symptom and press Enter"
+                className="tenth-input"
               />
               <Button
                 type="button"
@@ -119,7 +219,7 @@ export function PatientForm({ onSubmit, isLoading }: PatientFormProps) {
                     animate={{ opacity: 1, scale: 1 }}
                     exit={{ opacity: 0, scale: 0.8 }}
                   >
-                    <Badge variant="secondary" className="pr-1">
+                    <Badge variant="secondary" className="pr-1 tenth-badge bg-primary/10 text-primary border-primary/20">
                       {symptom}
                       <button
                         type="button"
@@ -145,6 +245,8 @@ export function PatientForm({ onSubmit, isLoading }: PatientFormProps) {
               placeholder="Describe your symptoms in detail, including when they started, severity, and any patterns you've noticed"
               rows={4}
               required
+              className="tenth-input"
+              autoFocus={false}
             />
           </div>
 
@@ -210,7 +312,7 @@ export function PatientForm({ onSubmit, isLoading }: PatientFormProps) {
             </div>
             <div className="flex flex-wrap gap-2 mt-2">
               {medications.map((medication, index) => (
-                <Badge key={index} variant="outline" className="pr-1">
+                <Badge key={index} variant="outline" className="pr-1 tenth-badge bg-transparent">
                   {medication}
                   <button
                     type="button"
@@ -264,20 +366,34 @@ export function PatientForm({ onSubmit, isLoading }: PatientFormProps) {
             <Label>Medical Images (Optional)</Label>
             <div
               {...getRootProps()}
-              className={`border-2 border-dashed rounded-lg p-6 text-center cursor-pointer transition-colors ${
-                isDragActive ? "border-primary bg-primary/5" : "border-border"
-              }`}
+              className={`border-3 border-dashed rounded-xl p-8 text-center cursor-pointer transition-all tenth-card hover:border-primary/50 ${
+                isDragActive ? "border-primary bg-primary/10 scale-102" : 
+                isUploading ? "border-primary/50 bg-primary/5 cursor-wait" : 
+                "border-muted-foreground/30"
+              } ${isUploading ? "pointer-events-none" : ""}`}
             >
-              <input {...getInputProps()} />
-              <Upload className="mx-auto h-12 w-12 text-muted-foreground mb-2" />
-              <p className="text-sm text-muted-foreground">
-                {isDragActive
-                  ? "Drop the images here..."
-                  : "Drag & drop medical images here, or click to select"}
-              </p>
-              <p className="text-xs text-muted-foreground mt-1">
-                Supports PNG, JPG, JPEG (max 5MB per file)
-              </p>
+              <input {...getInputProps()} disabled={isUploading} />
+              {isUploading ? (
+                <>
+                  <div className="mx-auto h-12 w-12 text-primary mb-2 animate-pulse">
+                    <Upload className="h-full w-full" />
+                  </div>
+                  <p className="text-sm font-medium">Uploading images...</p>
+                  <p className="text-xs text-muted-foreground mt-1">Please wait</p>
+                </>
+              ) : (
+                <>
+                  <Upload className="mx-auto h-12 w-12 text-muted-foreground mb-2" />
+                  <p className="text-sm text-muted-foreground">
+                    {isDragActive
+                      ? "Drop the images here..."
+                      : "Drag & drop medical images here, or click to select"}
+                  </p>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Supports PNG, JPG, JPEG (max 5MB per file)
+                  </p>
+                </>
+              )}
             </div>
             
             {uploadedImages.length > 0 && (
@@ -303,29 +419,62 @@ export function PatientForm({ onSubmit, isLoading }: PatientFormProps) {
           </div>
 
           {/* Privacy Notice */}
-          <div className="flex items-start gap-2 p-4 bg-muted rounded-lg">
-            <AlertCircle className="h-5 w-5 text-muted-foreground mt-0.5" />
-            <div className="text-sm text-muted-foreground">
-              <p className="font-medium mb-1">Privacy & Security</p>
-              <p>Your data is encrypted and processed securely. No personal information is stored permanently. This is for informational purposes only and not a substitute for professional medical advice.</p>
+          <motion.div 
+            className="flex items-start gap-3 p-4 bg-gradient-to-r from-green-500/10 to-transparent rounded-xl border-2 border-green-500/20"
+            whileHover={{ scale: 1.01 }}
+          >
+            <div className="p-2 bg-green-500/20 rounded-lg">
+              <Shield className="h-5 w-5 text-green-600 dark:text-green-400" />
             </div>
-          </div>
+            <div className="text-sm text-muted-foreground">
+              <p className="font-semibold mb-1 text-green-700 dark:text-green-300">Privacy & Security</p>
+              <p className="tenth-body">Your data is encrypted and processed securely. No personal information is stored permanently. This is for informational purposes only and not a substitute for professional medical advice.</p>
+            </div>
+          </motion.div>
 
           {/* Submit Button */}
-          <Button
-            type="submit"
-            disabled={!isFormValid || isLoading}
-            className="w-full"
-            size="lg"
+          <motion.div
+            whileHover={{ scale: isFormValid && !isLoading ? 1.02 : 1 }}
+            whileTap={{ scale: isFormValid && !isLoading ? 0.98 : 1 }}
           >
-            {isLoading ? (
-              <>Initializing Protocol<span className="thinking ml-2" /></>
-            ) : (
-              "Start Analysis"
-            )}
-          </Button>
+            <Button
+              type="submit"
+              disabled={!isFormValid || isLoading}
+              className="w-full tenth-button-primary relative overflow-hidden group"
+              size="lg"
+            >
+              {isLoading ? (
+                <>
+                  <motion.div
+                    className="flex items-center gap-2"
+                    animate={{ opacity: [1, 0.6, 1] }}
+                    transition={{ duration: 1.5, repeat: Infinity }}
+                  >
+                    <Sparkles className="h-5 w-5" />
+                    Initializing Protocol
+                    <span className="thinking ml-1" />
+                  </motion.div>
+                </>
+              ) : (
+                <span className="flex items-center justify-center gap-2">
+                  Start Analysis
+                </span>
+              )}
+              
+              {/* Animated background gradient */}
+              <motion.div
+                className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -z-10"
+                initial={{ x: '-100%' }}
+                whileHover={{
+                  x: '100%',
+                  transition: { duration: 0.6, ease: "easeInOut" }
+                }}
+              />
+            </Button>
+          </motion.div>
         </form>
       </CardContent>
     </Card>
+    </motion.div>
   )
 }

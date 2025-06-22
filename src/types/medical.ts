@@ -1,6 +1,9 @@
+import { SystemSymptom } from './symptom-checklist';
+
 export interface PatientData {
   id: string;
   symptoms: string[];
+  structuredSymptoms?: SystemSymptom[]; // New field for checklist symptoms
   description: string;
   medicalHistory?: string;
   medications?: string[];

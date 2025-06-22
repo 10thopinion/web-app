@@ -3,6 +3,8 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { AgentCard } from "./agent-card"
+import { ProtocolProgressPanel } from "./protocol-progress-panel"
+import { ExpertReviewPanel } from "./expert-review-panel"
 import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { PatientData } from "@/types/medical"
@@ -68,6 +70,16 @@ export function ProtocolRunner({ patientData, onReset }: ProtocolRunnerProps) {
           </div>
         </CardHeader>
       </Card>
+
+      {/* Real-time Progress Panel - Only show while running */}
+      {protocol.status !== "complete" && protocol.status !== "error" && (
+        <ProtocolProgressPanel
+          agentStatuses={agentStatuses}
+          startTime={protocol.startTime}
+          sessionId={protocol.sessionId}
+          totalAgents={10}
+        />
+      )}
 
       <Tabs defaultValue="agents" className="space-y-4">
         <TabsList className="grid w-full grid-cols-3">
@@ -247,6 +259,17 @@ export function ProtocolRunner({ patientData, onReset }: ProtocolRunnerProps) {
                   </div>
                 </CardContent>
               </Card>
+
+              {/* Expert Review Panel */}
+              {protocol.expertTrigger && (
+                <ExpertReviewPanel 
+                  trigger={protocol.expertTrigger}
+                  onRequestExpert={() => {
+                    // In production, this would connect to expert system
+                    console.log("Requesting expert review...")
+                  }}
+                />
+              )}
 
               <div className="flex gap-4">
                 <Button onClick={() => window.print()} variant="outline">
