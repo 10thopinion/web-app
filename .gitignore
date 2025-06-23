@@ -46,3 +46,9 @@ docs/
 .cursor/
 .claude/
 CLAUDE.md
+
+# Slide deck (for hackathon presentation only)
+deck/
+
+# Presentation script
+script.md
