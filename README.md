@@ -4,6 +4,8 @@ A medical AI diagnostic system that uses 10 specialized agents running on AWS Be
 
 ![Home](public/home.png)
 
+Try now at [10TH OPINION](10thopinion.com)!
+
 ## Overview
 
 This system implements a multi-agent consensus protocol where 10 AI agents with different specializations analyze patient data in phases. The agents are divided into four groups: blind diagnosticians (independent analysis), informed analysts (build on previous opinions), scrutinizers (quality control), and a final authority (synthesis).
