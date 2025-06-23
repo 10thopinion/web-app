@@ -167,7 +167,7 @@ export default function Home() {
                 animate={{ opacity: 1 }}
                 transition={{ delay: 0.6, duration: 0.6 }}
               >
-                No more hours in waiting rooms. No more single perspectives. Get multiple expert opinions analyzing your symptoms from different medical angles—providing a comprehensive overview.
+                Available 24/7 from everywhere. No more hours in waiting rooms. No more single perspectives. Get multiple opinions analyzing your symptoms from different medical angles—providing a comprehensive overview.
               </motion.p>
               
               {/* Pragmatic Truth Points */}
