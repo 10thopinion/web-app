@@ -2,6 +2,8 @@
 
 A medical AI diagnostic system that uses 10 specialized agents running on AWS Bedrock to analyze patient symptoms and provide diagnostic assessments.
 
+![Home](public/home.png)
+
 ## Overview
 
 This system implements a multi-agent consensus protocol where 10 AI agents with different specializations analyze patient data in phases. The agents are divided into four groups: blind diagnosticians (independent analysis), informed analysts (build on previous opinions), scrutinizers (quality control), and a final authority (synthesis).
