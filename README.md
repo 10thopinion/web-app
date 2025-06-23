@@ -1,6 +1,6 @@
-# Tenth Opinion Protocol
+# 10TH OPINION - Medical Consensus
 
-A medical AI diagnostic system that uses 10 specialized agents running on AWS Bedrock to analyze patient symptoms and provide diagnostic assessments.
+A medical AI diagnostic system that uses 10 agents running on AWS Bedrock to analyze patient symptoms and provide diagnostic assessments.
 
 ![Home](public/home.png)
 
